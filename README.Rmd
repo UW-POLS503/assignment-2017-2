@@ -94,9 +94,14 @@ This data was re-constructed by [Plewis (2017)](http://onlinelibrary.wiley.com/d
 
 ## Regression Models
 
-1. *M1* `paupratio ~ outratio`
-2. *M2* `paupratio ~ year + outratio`
-3. *M3* `paupratio ~ year + outratio`
+Run regressions of `pauper` using the yearly level data with the following specifications:
+
+1. `outratio` only
+2. `outratio` plus controls
+3. `outratio` plus controls, year dummies, and region dummies.
+4. `outratio` with controls and interactions with year and region dummies
+
+Now run the same set of four specifications but using the ratio difference variables: `outratiodiff`, `paupratiodiff`, ...
 
 
 Read the R for data science section [Many Models](http://r4ds.had.co.nz/many-models.html) for tips on how to estimate it.
