@@ -1,5 +1,5 @@
 ---
-title: POLS 503 HW 3
+title: "POLS 503: HW 2"
 ---
 
 ```{r}
@@ -15,6 +15,7 @@ library("viridis")
 ```
 
 ## The Effect of English Poor Laws on Pauperism
+
 [Yule (1899)](https://www.jstor.org/stable/2979889?seq=1#page_scan_tab_contents) is a published example multiple regression analysis in its modern form.[^yule]
 
 Yule wrote this paper to analyze the effect of policy changes and implementation on pauperism (poor receiving benefits) in England under the [English Poor Laws](https://en.wikipedia.org/wiki/English_Poor_Laws). In 1834, a new poor law was passed that established a national welfare system in England and Wales. The New Poor Law created new administrative districts (Poor Law Unions) to adminster the law. Most importantly, it attempted to standardize the provision of aid to the poor. There were two types of aid provided: in-relief or aid provided to paupers in workhouses where they resided, and out-relief or aid provided to paupers residing at home. The New Poor Law wanted to decrease out-relief and increase in-relief in the belief that in-relief, in particular the quality of life in workhouses, was a deterrence to poverty and an encouragement for the poor to work harder to avoid poverty.
@@ -91,11 +92,12 @@ This data was re-constructed by [Plewis (2017)](http://onlinelibrary.wiley.com/d
 # devtools::install_github("jrnold/datums")
 ```
 
+## Regression Models
 
 1. *M1* `paupratio ~ outratio`
 2. *M2* `paupratio ~ year + outratio`
-3. *M3* `paupratio ~ year + outratio + 
-4. ...
+3. *M3* `paupratio ~ year + outratio`
+
 
 Read the R for data science section [Many Models](http://r4ds.had.co.nz/many-models.html) for tips on how to estimate it.
 
@@ -117,7 +119,7 @@ Can you think of other functional forms.
   - studentized error  (`rstudent`)
   - Cook's distance (`cooksd`)
 
-2. Produce a  plot
+2. Produce a plot
 3. Using the plot and rules of thumb identify outliers and influential observations.
 
 ## Influential Observations for outratio
