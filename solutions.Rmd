@@ -1,0 +1,8 @@
+---
+title: "Solutions to POLS 503 Assignment 2"
+author: "Jeffrey Arnold"
+date: "4/19/2017"
+output: html_document
+---
+
+Fill in your solutions here
