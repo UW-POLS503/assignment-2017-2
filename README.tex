@@ -1,0 +1,681 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={POLS 503: Assigment 2},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\newcommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+  \title{POLS 503: Assigment 2}
+  \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+  \author{}
+  \preauthor{}\postauthor{}
+  \predate{\centering\large\emph}
+  \postdate{\par}
+  \date{2017-04-21}
+
+\usepackage{amsmath}
+\DeclareMathOperator{\sd}{sd}
+
+\begin{document}
+\maketitle
+
+This assignment works through an example in Yule (1899):
+
+Yule (1899) is a published example multiple regression analysis in its
+modern form.\footnote{See Freedman (1997), Stigler (1990), Stigler
+  (2016), and Plewis (2017) for discussions of Yule (1899).}
+
+Yule wrote this paper to analyze the effect of policy changes and
+implementation on pauperism (poor receiving benefits) in England under
+the \href{https://en.wikipedia.org/wiki/English_Poor_Laws}{English Poor
+Laws}. In 1834, a new poor law was passed that established a national
+welfare system in England and Wales. The New Poor Law created new
+administrative districts (Poor Law Unions) to adminster the law. Most
+importantly, it attempted to standardize the provision of aid to the
+poor. There were two types of aid provided: in-relief or aid provided to
+paupers in workhouses where they resided, and out-relief or aid provided
+to paupers residing at home. The New Poor Law wanted to decrease
+out-relief and increase in-relief in the belief that in-relief, in
+particular the quality of life in workhouses, was a deterrence to
+poverty and an encouragement for the poor to work harder to avoid
+poverty.
+
+Yule identifies that there are various potential causes of the change in
+rate of pauperism, including changes in the (1) law, (2) economic
+conditions, (3) general social character, (4) moral character, (5) age
+distribution of the population (pg. 250).
+
+He astutely notes the following:
+
+\begin{quote}
+If, for example, we should find an increase in the proportion of
+out-relief associated with (1) an increase in the proportion of the aged
+to the whole population, and also (2) an increase in the rate of
+pauperism, it might be legitimate to interpret the result in the sense
+that changes in out-relief and pauperism were merely simultaneous
+concomitants of changes in the proportion of aged-the change of
+pauperism not being a direct consequence of the change of
+administration, but both direct consequenices of the change in age
+distribution. It is evidently most important that we should be able to
+decide between two such differenit ilnterpretations of the same facts.
+This the method I have used is perfectly competernt to do --- Yule (1899
+pg. 250)
+\end{quote}
+
+\section{Setup}\label{setup}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{library}\NormalTok{(}\StringTok{"tidyverse"}\NormalTok{)}
+\KeywordTok{library}\NormalTok{(}\StringTok{"modelr"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+While only a subset of the original data of Yule (1899) was printed in
+the article itself, Plewis (2015) reconstructed the orginal data and
+Plewis (2017) replicated the original paper. This data is included in
+the package \textbf{datums}. This package is not on CRAN, but can be
+downloaded from github. \textbf{IMPORTANT} install the latest version of
+\textbf{datums} since a few fixes were recently made to the
+\texttt{pauperism} dataset.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# devtools::install_github("jrnold/datums")}
+\KeywordTok{library}\NormalTok{(}\StringTok{"datums"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+The data for Yule (1899) is split into two data frames:
+\texttt{pauperism\_plu} contains data on the Poor Law Unions (PLU), and
+\texttt{pauperism\_year}, panel data with the PLU-year as the unit of
+observation.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pauperism <-}
+\StringTok{  }\KeywordTok{left_join}\NormalTok{(datums}\OperatorTok{::}\NormalTok{pauperism_plu, datums}\OperatorTok{::}\NormalTok{pauperism_year,}
+            \DataTypeTok{by =} \StringTok{"ID"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+The data consist of 599 PLUs and the years: 1871, 1881, 1891 (years in
+which there was a UK census).
+
+Yule (1899) is explcitly using regression for causal inference. The
+outcome variable of interest is:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Pauperism} the percentage of the population in receipt of
+  relief of any kind, less lunatics and vagrants
+\end{itemize}
+
+The treatment (policy intervention) is the ration of numbers receiving
+outdoor relief to those receiving indoor relief.
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Out-Relief Ratio:} the ratio of numbers relieved outdoors to
+  those relieved indoors
+\end{itemize}
+
+He will control for two variables that may be associated with the
+treatment
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Proportion of Old:} the proportion of the aged (65 years) to
+  the whole population since the old are more likely to be poor.
+\item
+  \textbf{Population:} in particular changes in population that may be
+  proxying for changes in the economic, social, or moral factors of
+  PLUs.
+\end{itemize}
+
+There is also \textbf{Grouping of Unions}, which is a locational
+classification based on population density that consists of Rural,
+Mixed, Urban, and Metropolitan.
+
+Instead of taking differences or percentages, Yule worked with ``percent
+ratio differences'', \(100 \times \frac{x_{t}}{x_{t-1}}\), because he
+did not want to work with negative signs, presumably a concern at the
+because he was doing arithmetic by hand and this would make calculations
+more tedious or error-prone.
+
+\subsection{Original Specification}\label{original-specification}
+
+Run regressions of \texttt{pauper} using the yearly level data with the
+following specifications. In Yule (1899), the reg
+
+\begin{itemize}
+\tightlist
+\item
+  \emph{M1:}
+  \texttt{paupratiodiff\ \textasciitilde{}\ outratiodiff\ +\ year\ +\ Type}
+\item
+  \emph{M2:}
+  \texttt{paupratiodiff\ \textasciitilde{}\ outratiodiff\ +\ (popratiodiff\ +\ oldratiodiff)\ *\ (year\ +\ Type)}
+\item
+  \emph{M3:}
+  \texttt{-1\ \ +\ paupratiodiff\ \textasciitilde{}\ (outratiodiff\ +\ popratiodiff\ +\ oldratiodiff)\ *\ (year\ +\ Type)}
+\item
+  \emph{M3:}
+  \texttt{paupratiodiff\ \textasciitilde{}\ (outratiodiff\ +\ popratiodiff\ +\ oldratiodiff)\ *\ (year\ +\ Type)}
+\end{itemize}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Present the regressions results in a regression table
+\item
+  Interpret the coefficients for \texttt{outratiodiff} for each model.
+\item
+  Write the equations for each or all models, and describe the model
+  with a sentence or two. Try to be as concise as possible. Look at
+  recent journal articles for examples of the wording and format.
+\item
+  What is the difference between \emph{M3} and \emph{M4}. What are the
+  pros and cons of each parameterization?
+\item
+  Conduct F-tests on the hypotheses:
+\item
+  All interactions in \emph{M4} are 0
+\item
+  The coefficients on \texttt{outratiodiff} in \emph{M4} are the same
+  across years
+\item
+  The coefficients on \texttt{outratiodiff} in \emph{M4} are the same
+  across PLU Types
+\item
+  The coefficients on \texttt{outratiodiff} in \emph{M4} are the same
+  across PLU Types and years.
+\item
+  What is the predicted value of the median PLU in each year and PLU
+  Type for these models. Include confidence intervals. Plot these as
+  point-ranges with the estimate and confidence intervals.
+\item
+  As previously, calculate the predicted value of the median PLU in each
+  year and PLU Type. But instead of confidence intervals include the
+  prediction interval. How do the confidence and prediction intervals
+  differ? What are their definitions?
+\end{enumerate}
+
+\subsection{Functional Forms}\label{functional-forms}
+
+The regression line of the model estimated in Yule (1899) (ignoring the
+year and region terms and interactions) can be also written as \[
+\begin{aligned}[t]
+100 \times \frac{\mathtt{pauper2}_t / \mathtt{Popn2_t}}{\mathtt{pauper2}_{t-1} / \mathtt{Popn2_{t-1}}} 
+&= \beta_0 + \beta_1 \times 100 \times \frac{\mathtt{outratio}_t}{\mathtt{outratio_{t-1}}} \\
+& \quad + \beta_2 \times 100 \times \frac{\mathtt{Popn65}_t / \mathtt{Popn2}_{t}}{\mathtt{Popn65}_{t-1} / \mathtt{Popn2}_{t-1}} + \beta_3 \times 100 \times \frac{\mathtt{Popn2}_t}{\mathtt{Popn2}_{t - 1}}
+\end{aligned}
+\]
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Take the logarithm of each side, and simplify so that
+  \(\log(\mathtt{pauper2}_t/\mathtt{pauper2}_{t -1})\) is the outcome
+  and the predictors are all in the form
+  \(\log(x_t) - \log(x_{t - 1}) = \log(x_t / x_{t - 1})\).
+\item
+  Estimate the model with logged difference predictors, Year, and month
+  and interpret the coefficient on \(\log(outratio_t)\).
+\item
+  What are the pros and cons of this parameterization of the model
+  relative to the one in Yule (1899)? Focus on interpretation and the
+  desired goal of the inference rather than the formal tests of the
+  regression. Can you think of other, better functional forms?
+\end{enumerate}
+
+\subsection{Non-differenced Model}\label{non-differenced-model}
+
+Suppose you estimate the model (\emph{M5}) without differencing,
+
+\begin{verbatim}
+pauper2 ~ outratio + (Popn2 + Prop65) * (year + Type)
+\end{verbatim}
+
+\begin{itemize}
+\tightlist
+\item
+  Interpret the coefficient on \texttt{outratio}. How is this different
+  than model \emph{M5}
+\item
+  What accounts for the different in sample sizes in \emph{M5} and
+  \emph{M2}?
+\item
+  What model do you think will generally have less biased estimates of
+  the effect of out-relief on pauperism: \emph{M5} or \emph{M2}? Explain
+  your reasoning.
+\end{itemize}
+
+\subsection{Substantive Effects}\label{substantive-effects}
+
+Read Gross (2014) and McCaskey and Rainey (2015). Use the methods
+described in those papers to assess the substantive effects of out-ratio
+on the rate of pauperism. Use the model(s) of your choosing.
+
+\subsection{Influential Observations and
+Outliers}\label{influential-observations-and-outliers}
+
+\subsubsection{Influential Observations for the
+Regression}\label{influential-observations-for-the-regression}
+
+For this use \emph{M2}:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  For each observation, calculate and explain the following:
+\end{enumerate}
+
+\begin{itemize}
+\tightlist
+\item
+  hat value (\texttt{hatvalues})
+\item
+  standardized error (\texttt{rstandard})
+\item
+  studentized error (\texttt{rstudent})
+\item
+  Cook's distance (\texttt{cooksd})
+\end{itemize}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  Create an outlier plot and label any outliers. See the example
+  \href{https://jrnold.github.io/intro-methods-notes/outliers.html\#iver-and-soskice-data}{here}
+\item
+  Using the plot and rules of thumb identify outliers and influential
+  observations
+\end{enumerate}
+
+\subsection{Influential Observations for a
+Coefficient}\label{influential-observations-for-a-coefficient}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Run \emph{M2}, deleting each observation and saving the coefficient
+  for \texttt{outratiodirff}. This is a method called the jackknife. You
+  can use a for loop to do this, or you can use the function
+  \texttt{jackknife} in the package
+  \href{https://github.com/jrnold/resamplr}{resamplr}.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    For which observations is there the largest change in the
+    coefficient on \texttt{outratiodiff}?
+  \end{itemize}
+
+  \begin{enumerate}
+  \def\labelenumii{\arabic{enumii}.}
+  \tightlist
+  \item
+    Which observations have the largest effect on the estimate of
+    \texttt{outratiodiff}?
+  \item
+    How do these observations compare with those that had the largest
+    effect on the overall regression as measured with Cook's distance?
+  \item
+    Compare the results of the jackknife to the \texttt{dfbeta}
+    statistic for \texttt{outratiodiff}
+  \end{enumerate}
+\item
+  Aronow and Samii (2015) note that the influence of observations in a
+  regression coefficient is different than the the influence of
+  regression observations in the entire regression. Calculate the
+  observation weights for \texttt{outratiodiff}.
+
+  \begin{enumerate}
+  \def\labelenumii{\arabic{enumii}.}
+  \tightlist
+  \item
+    Regress \texttt{outratiodiff} on the control variables
+  \item
+    The weights of the observations are those with the highest squared
+    errors from this regression. Which observations have the highest
+    coefficient values?
+  \item
+    How do the observations with the highest regression weights compare
+    with those with the highest changes in the regression coefficient
+    from the jackknife?
+  \end{enumerate}
+\end{enumerate}
+
+\subsection{Omitted Variable Bias}\label{omitted-variable-bias}
+
+An informal way to assess the potential impact of omitted variables on
+the coeficient of the variable of interest is to coefficient variation
+when covariates are added as a measure of the potential for omitted
+variable bias (Oster 2016). Nunn and Wantchekon (2011) (Table 4)
+calculate a simple statistic for omitted variable bias in OLS. This
+statistic ``provide{[}s{]} a measure to gauge the strength of the likely
+bias arising from unobservables: how much stronger selection on
+unobservables, relative to selection on observables, must be to explain
+away the full estimated effect.''
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Run a regression without any controls. Denote the coefficient on the
+  variable of interest as \(\hat\beta_R\).
+\item
+  Run a regression with the full set of controls. Denote the coefficient
+  on the variable of interest in this regression as \(\hat\beta_F\).
+\item
+  The ratio is \(\hat\beta_F / (\hat\beta_R - \hat\beta_F)\)
+\end{enumerate}
+
+Calculate this statistic for \emph{M2} and interpret it.
+
+\subsection{Heteroskedasticity}\label{heteroskedasticity}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Run \emph{M2} and \emph{M3} with a heteroskedasticity consistent
+  (HAC), also called robust, standard error. How does this affect the
+  standard errors on \texttt{outratio} coefficients? Use the
+  \textbf{sandwich} package to add HAC standard errors (Zeileis 2004).
+\item
+  Model \emph{M3} is almost equivalent to running separate regressions
+  on each combination of \texttt{Type} and \texttt{Year}.
+
+  \begin{enumerate}
+  \def\labelenumii{\arabic{enumii}.}
+  \tightlist
+  \item
+    Run a regression on each subset of combination of \texttt{Type} and
+    \texttt{Year}.
+  \item
+    How do the coefficients, standard errors, and regression standard
+    errors (\(\sigma\)) differ from those of \emph{M3}.
+  \item
+    Compare the robust standard errors in \emph{M3} to those in the
+    subset regressions. What is the relationship between
+    heteroskedasticity and difference between the single regression with
+    interactions (\emph{M3}) and the multiple regressions.
+  \end{enumerate}
+\end{enumerate}
+
+\subsection{Weighted Regression}\label{weighted-regression}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Run \emph{M2} and \emph{M3} as weighted regressions, weighted by the
+  population (\texttt{Popn}) and interpret the coefficients on
+  \texttt{outratiodiff} and interactions. Informally assess the extent
+  to which the coefficients are different. Which one does it seem to
+  affect more?
+\item
+  What are some rationales for weighting by population? See the
+  discussion in Solon, Haider, and Wooldridge (2013) and Angrist and
+  Pischke (2014).
+\end{enumerate}
+
+\textbf{BELOW THIS STILL IN PROGRESS}
+
+\subsection{Average Marginal Effects}\label{average-marginal-effects}
+
+\subsection{Cross-Validation}\label{cross-validation}
+
+When using regression causal estimation, model specification and choice
+should largely be based on avoiding omitted variables. Another criteria
+for selecting models is to use their fit to the data. But a model's fit
+to data should not be assessed using only the in-sample data. That leads
+to overfitting---and the best model would always be to include an
+indicator variable for every observation Instead, a model's fit to data
+can be assessed by using its out-of-sample fit. One way to estimate the
+\emph{expected} fit of a model to \emph{new} data is cross-validation.
+
+\subsection{Bootstrapping}\label{bootstrapping}
+
+Estimate the 95\% confidence intervals of model with simple
+non-parametric bootstrapped standard errors. The non-parametric
+bootstrap works as follows:
+
+Let \(\hat\theta\) be the estimate of a statistic. To calculate
+bootstrapped standard errors and confidence intervals use the following
+procedure.
+
+For samples \(b = 1, ..., B\).
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Draw a sample with replacement from the data
+\item
+  Estimate the statistic of interest and call it \(\theta_b^*\).
+\end{enumerate}
+
+Let \(\theta^* = \{\theta_1^*, \dots, \theta_B^*\}\) be the set of
+bootstrapped statistics.
+
+\begin{itemize}
+\item
+  standard error: \(\hat\theta\) is \(\sd(\theta^*)\).
+\item
+  confidence interval:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    normal approximation. This calculates the confidence interval as
+    usual but uses the bootstrapped standard error instead of the
+    classical OLS standard error:
+    \(\hat\theta \pm t_{\alpha/2,df} \cdot \sd(\theta^*)\)
+  \item
+    quantiles: A 95\% confidence interval uses the 2.5\% and 97.5\%
+    quantiles of \(\theta^*\) for its upper and lower bounds.
+  \end{itemize}
+\end{itemize}
+
+\subsection*{References}\label{references}
+\addcontentsline{toc}{subsection}{References}
+
+\hypertarget{refs}{}
+\hypertarget{ref-AngristPischke2014a}{}
+Angrist, Joshua D., and Jörn-Steffen Pischke. 2014. \emph{Mastering
+`Metrics}. Princeton UP.
+
+\hypertarget{ref-AronowSamii2015a}{}
+Aronow, Peter M., and Cyrus Samii. 2015. ``Does Regression Produce
+Representative Estimates of Causal Effects?'' \emph{American Journal of
+Political Science} 60 (1). Wiley-Blackwell: 250--67.
+doi:\href{https://doi.org/10.1111/ajps.12185}{10.1111/ajps.12185}.
+
+\hypertarget{ref-Freedman_1997}{}
+Freedman, David. 1997. ``From Association to Causation via Regression.''
+\emph{Advances in Applied Mathematics} 18 (1). Elsevier BV: 59--110.
+doi:\href{https://doi.org/10.1006/aama.1996.0501}{10.1006/aama.1996.0501}.
+
+\hypertarget{ref-Gross2014a}{}
+Gross, Justin H. 2014. ``Testing What Matters (If You Must Test at All):
+A Context-Driven Approach to Substantive and Statistical Significance.''
+\emph{American Journal of Political Science} 59 (3). Wiley-Blackwell:
+775--88.
+doi:\href{https://doi.org/10.1111/ajps.12149}{10.1111/ajps.12149}.
+
+\hypertarget{ref-McCaskeyRainey2015a}{}
+McCaskey, Kelly, and Carlisle Rainey. 2015. ``Substantive Importance and
+the Veil of Statistical Significance.'' \emph{Statistics, Politics and
+Policy} 6 (1-2). Walter de Gruyter GmbH.
+doi:\href{https://doi.org/10.1515/spp-2015-0001}{10.1515/spp-2015-0001}.
+
+\hypertarget{ref-NunnWantchekon2011a}{}
+Nunn, Nathan, and Leonard Wantchekon. 2011. ``The Slave Trade and the
+Origins of Mistrust in Africa.'' \emph{American Economic Review} 101
+(7): 3221--52.
+doi:\href{https://doi.org/10.1257/aer.101.7.3221}{10.1257/aer.101.7.3221}.
+
+\hypertarget{ref-Oster2016a}{}
+Oster, Emily. 2016. ``Unobservable Selection and Coefficient Stability:
+Theory and Evidence.'' \emph{Journal of Business \& Economic
+Statistics}, September. Informa UK Limited, 0--0.
+doi:\href{https://doi.org/10.1080/07350015.2016.1227711}{10.1080/07350015.2016.1227711}.
+
+\hypertarget{ref-Plewis2015a}{}
+Plewis, Ian. 2015. ``Census and Poor Law Union Data, 1871-1891.'' SN
+7822. UK Data Service; data collection.
+doi:\href{https://doi.org/10.5255/UKDA-SN-7822-1}{10.5255/UKDA-SN-7822-1}.
+
+\hypertarget{ref-Plewis2017a}{}
+---------. 2017. ``Multiple Regression, Longitudinal Data and Welfare in
+the 19th Century: Reflections on Yule (1899).'' \emph{Journal of the
+Royal Statistical Society: Series A (Statistics in Society)}, February.
+Wiley-Blackwell.
+doi:\href{https://doi.org/10.1111/rssa.12272}{10.1111/rssa.12272}.
+
+\hypertarget{ref-SolonHaiderWooldridge2013a}{}
+Solon, Gary, Steven Haider, and Jeffrey Wooldridge. 2013. ``What Are We
+Weighting for?'' National Bureau of Economic Research.
+doi:\href{https://doi.org/10.3386/w18859}{10.3386/w18859}.
+
+\hypertarget{ref-Stigler1990a}{}
+Stigler, Stephen M. 1990. \emph{The History of Statistics: The
+Measurement of Uncertainty Before 1900}. HARVARD UNIV PR.
+\url{http://www.ebook.de/de/product/3239165/stephen_m_stigler_the_history_of_statistics_the_measurement_of_uncertainty_before_1900.html}.
+
+\hypertarget{ref-Stigler2016a}{}
+---------. 2016. \emph{The Seven Pillars of Statistical Wisdom}. Harvard
+University Press.
+\url{http://www.ebook.de/de/product/25237216/stephen_m_stigler_the_seven_pillars_of_statistical_wisdom.html}.
+
+\hypertarget{ref-Yule1899a}{}
+Yule, G. Udny. 1899. ``An Investigation into the Causes of Changes in
+Pauperism in England, Chiefly During the Last Two Intercensal Decades
+(Part I.).'' \emph{Journal of the Royal Statistical Society} 62 (2).
+JSTOR: 249. doi:\href{https://doi.org/10.2307/2979889}{10.2307/2979889}.
+
+\hypertarget{ref-Zeileis2004a}{}
+Zeileis, Achim. 2004. ``Econometric Computing with Hc and Hac Covariance
+Matrix Estimators.'' \emph{Journal of Statistical Software} 11 (1):
+1--17.
+doi:\href{https://doi.org/10.18637/jss.v011.i10}{10.18637/jss.v011.i10}.
+
+
+\end{document}
