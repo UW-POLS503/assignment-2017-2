@@ -1,21 +1,22 @@
 ---
-title: POLS 503 HW 3
+title: 'POLS 503: Assigment 2'
+date: '2017-04-21'
+output:
+  md_document: default
+  html_document:
+    includes:
+      before_body: includes/before_body.html
+  pdf_document:
+    includes:
+      in_header: includes/in_header.tex
+    keep_tex: yes
+bibliography: assignment2.bib
 ---
 
-```{r}
-library("dplyr")
-library("tidyr")
-library("tidyverse")
-library("modelr")
-library("viridis")
-library("broom")
-library("ggplot2")
-library("modelr")
-library("viridis")
-```
 
-## The Effect of English Poor Laws on Pauperism
-[Yule (1899)](https://www.jstor.org/stable/2979889?seq=1#page_scan_tab_contents) is a published example multiple regression analysis in its modern form.[^yule]
+This assignment works through an example in @Yule1899a:
+
+@Yule1899a is a published example multiple regression analysis in its modern form.[^yule]
 
 Yule wrote this paper to analyze the effect of policy changes and implementation on pauperism (poor receiving benefits) in England under the [English Poor Laws](https://en.wikipedia.org/wiki/English_Poor_Laws). In 1834, a new poor law was passed that established a national welfare system in England and Wales. The New Poor Law created new administrative districts (Poor Law Unions) to adminster the law. Most importantly, it attempted to standardize the provision of aid to the poor. There were two types of aid provided: in-relief or aid provided to paupers in workhouses where they resided, and out-relief or aid provided to paupers residing at home. The New Poor Law wanted to decrease out-relief and increase in-relief in the belief that in-relief, in particular the quality of life in workhouses, was a deterrence to poverty and an encouragement for the poor to work harder to avoid poverty.
 
@@ -23,92 +24,114 @@ Yule identifies that there are various potential causes of the change in rate of
 
 He astutely notes the following:
 
-> If, for example, we should find an increase in the proportion of out-relief associated with (1) an increase in the proportion of the aged to the whole population, and also (2) an increase in the rate of pauperism, it might be legitimate to interpret the result in the sense that changes in out-relief and pauperism were merely simultaneous concomitants of changes in the proportion of aged-the change of pauperism not being a direct consequence of the change of administration, but both direct consequenices of the change in age distribution. It is evidently most important that we should be able to decide between two such differenit ilnterpretations of the same facts. This the method I have used is perfectly competernt to do  - Yule (1899, pg. 250)
+> If, for example, we should find an increase in the proportion of out-relief associated with (1) an increase in the proportion of the aged to the whole population, and also (2) an increase in the rate of pauperism, it might be legitimate to interpret the result in the sense that changes in out-relief and pauperism were merely simultaneous concomitants of changes in the proportion of aged-the change of pauperism not being a direct consequence of the change of administration, but both direct consequenices of the change in age distribution. It is evidently most important that we should be able to decide between two such differenit ilnterpretations of the same facts. This the method I have used is perfectly competernt to do --- @Yule1899a [pg. 250]
 
-[^yule]: See Stigler(2016) and Stigler(1990) for a discussion.
+[^yule]: See @Freedman_1997, @Stigler1990a, @Stigler2016a, and @Plewis2017a for discussions of @Yule1899a.
 
-### Data
+# Setup
 
-The Yule's data on pauperism is included in the package datums at `jrnold/datums`
+```{r message=FALSE}
+library("tidyverse")
+library("modelr")
+```
+
+While only a subset of the original data of @Yule1899a was printed in the article itself, @Plewis2015a reconstructed the orginal data and @Plewis2017a replicated the original paper. This data is included in the package **datums**. This package is not on CRAN, but can be downloaded from github.
+**IMPORTANT** install the latest version of **datums** since a few fixes were recently made to the `pauperism` dataset.
 ```{r}
 # devtools::install_github("jrnold/datums")
-library(datums)
+library("datums")
 ```
-It consists of two datasets: pauperism_plu contains data on the Poor Law Unions, and pauperism_year has the PLU-year as the unit of observation and contains data on the levels of pauperism in 1871, 1881, and 1891 in each PLU.
+
+The data for @Yule1899a is split into two data frames: `pauperism_plu` contains data on the Poor Law Unions (PLU), and `pauperism_year`, panel data with the PLU-year as the unit of observation.
 ```{r}
-pauperism_plu <- datums::pauperism_plu
-pauperism_year <- datums::pauperism_year
-glimpse(pauperism_year)
+pauperism <-
+  left_join(datums::pauperism_plu, datums::pauperism_year,
+            by = "ID")
+            
 ```
-There are four variables of primary interest to Yule (pg. 252-254):
+The data consist of `r length(unique(pauperism$ID))` PLUs and the years: 1871, 1881, 1891 (years in which there was a UK census).
 
-**Pauperism**--the percentage of the population in receipt of relief of any kind, less lunatics and vagrants;
+@Yule1899a is explcitly using regression for causal inference. The outcome variable of interest is:
 
-**Out-Relief Ratio**--the ratio of numbers relieved outdoors to those relieved indoors;
+- **Pauperism** the percentage of the population in receipt of relief of any kind, less lunatics and vagrants
 
-**Proportion of Old**--the proportion of the aged (65 years) to the whole population;
+The treatment (policy intervention) is the ration of numbers receiving outdoor relief to those receiving indoor relief.
 
-**Population**--used to capture economic, social, or moral factors.
+- **Out-Relief Ratio:** the ratio of numbers relieved outdoors to those relieved indoors
+
+He will control for two variables that may be associated with the treatment
+
+- **Proportion of Old:** the proportion of the aged (65 years) to the whole population since the old are more likely to be poor.
+- **Population:** in particular changes in population that may be proxying for changes in the economic, social, or moral factors of PLUs.
 
 There is also **Grouping of Unions**, which is a locational classification based on population density that consists of Rural, Mixed, Urban, and Metropolitan.
 
 Instead of taking differences or percentages, Yule worked with "percent ratio differences", $100 \times \frac{x_{t}}{x_{t-1}}$, because he did not want to work with negative signs, presumably a concern at the because he was doing arithmetic by hand and this would make calculations more tedious or error-prone.
 
-We can construct the **Proportion of Old** variable below since it is not included in the datasets.
 
-The `pctratiodiff` function computes percentage ratio differences:
-```{r}
-pctratiodiff <- function(x) {  
-  z <- 100 * (x / lag(x))
-  # if lag(x) == 0 then z is missing
-  z[!is.finite(z)] <- NA_real_
-  z
-}
+## Original Specification
 
-# adjust the dataset by creating Popn65 and Prop65 variables
-pauperism <-  
-  pauperism_year %>%
-  mutate(pauper = coalesce(pauper2, pauper),
-         Popn = coalesce(Popn2, Popn),
-         # total of men and women over 65
-         Popn65 = F65 + M65,
-         # proportion of total population 65 and above
-         Prop65 = Popn65 / Popn,
-         year = as.integer(year)) %>%
-  arrange(ID, year) %>%
-  group_by(ID) %>%
-  mutate(Prop65_diff = pctratiodiff(Prop65)) %>%
-  # for each PLU, create Prop65_diff using the above function
-  left_join(pauperism_plu, by = "ID") %>%
-  ungroup()
+Run regressions of `pauper` using the yearly level data with the following specifications. 
+In @Yule1899a, the reg
+
+- *M1:* `paupratiodiff ~ outratiodiff + year + Type`
+- *M2:* `paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type)`
+- *M3:* `-1  + paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type)`
+- *M3:* `paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type)`
+
+1. Present the regressions results in a regression table
+2. Interpret the coefficients for `outratiodiff` for each model.
+3. Write the equations for each or all models, and describe the model with a sentence or two. Try to be as concise as possible. Look at recent journal articles for examples of the wording and format.
+4. What is the difference between *M3* and *M4*. What are the pros and cons of each parameterization?
+4. Conduct F-tests on the hypotheses:
+  
+  1. All interactions in *M4* are 0
+  2. The coefficients on `outratiodiff` in *M4* are the same across years
+  3. The coefficients on `outratiodiff` in *M4* are the same across PLU Types
+  4. The coefficients on `outratiodiff` in *M4* are the same across PLU Types and years.
+
+5. What is the predicted value of the median PLU in each year and PLU Type for these models. Include confidence intervals. Plot these as point-ranges with the estimate and confidence intervals.
+6. As previously, calculate the predicted value of the median PLU in each year and PLU Type. But instead of confidence intervals include the prediction interval. How do the confidence and prediction intervals differ? What are their definitions?
+
+
+## Functional Forms
+
+The regression line of the model estimated in @Yule1899a (ignoring the year and region terms and interactions) can be also written as
+$$
+\begin{aligned}[t]
+100 \times \frac{\mathtt{pauper2}_t / \mathtt{Popn2_t}}{\mathtt{pauper2}_{t-1} / \mathtt{Popn2_{t-1}}} 
+&= \beta_0 + \beta_1 \times 100 \times \frac{\mathtt{outratio}_t}{\mathtt{outratio_{t-1}}} \\
+& \quad + \beta_2 \times 100 \times \frac{\mathtt{Popn65}_t / \mathtt{Popn2}_{t}}{\mathtt{Popn65}_{t-1} / \mathtt{Popn2}_{t-1}} + \beta_3 \times 100 \times \frac{\mathtt{Popn2}_t}{\mathtt{Popn2}_{t - 1}}
+\end{aligned}
+$$
+
+1. Take the logarithm of each side, and simplify so that $\log(\mathtt{pauper2}_t/\mathtt{pauper2}_{t -1})$ is the outcome and the predictors are all in the form $\log(x_t) - \log(x_{t - 1}) = \log(x_t / x_{t - 1})$.
+2. Estimate the model with logged difference predictors, Year, and month and interpret the coefficient on $\log(outratio_t)$.
+3. What are the pros and cons of this parameterization of the model relative to the one in @Yule1899a? Focus on interpretation and the desired goal of the inference rather than the formal tests of the regression. Can you think of other, better functional forms?
+
+
+## Non-differenced Model
+
+Suppose you estimate the model (*M5*) without differencing,
+```
+pauper2 ~ outratio + (Popn2 + Prop65) * (year + Type)
 ```
 
-## Models
-
-Consider the Yule 1899 data on the relationship between pauperism and the way in which welfare was 
-This data was re-constructed by [Plewis (2017)](http://onlinelibrary.wiley.com/doi/10.1111/rssa.12272/full) and is distributed with the **datums** package available on github,
-```{r}
-# devtools::install_github("jrnold/datums")
-```
+- Interpret the coefficient on `outratio`. How is this different than model *M5*
+- What accounts for the different in sample sizes in *M5* and *M2*?
+- What model do you think will generally have less biased estimates of the effect of out-relief on pauperism: *M5* or *M2*? Explain your reasoning.
 
 
-1. *M1* `paupratio ~ outratio`
-2. *M2* `paupratio ~ year + outratio`
-3. *M3* `paupratio ~ year + outratio + 
-4. ...
+## Substantive Effects
 
-Read the R for data science section [Many Models](http://r4ds.had.co.nz/many-models.html) for tips on how to estimate it.
+Read @Gross2014a and @McCaskeyRainey2015a. Use the methods described in those papers to assess the substantive effects of out-ratio on the rate of pauperism. Use the model(s) of your choosing.
 
-## Functional Form
-
-- log both sides, simplify terms and interpret
-- use the functional form in the Plewis paper
-
-Can you think of other functional forms.
 
 ## Influential Observations and Outliers
 
-### Influential Observations
+### Influential Observations for the Regression
+
+For this use *M2*:
 
 1. For each observation, calculate and explain the following:
 
@@ -117,24 +140,30 @@ Can you think of other functional forms.
   - studentized error  (`rstudent`)
   - Cook's distance (`cooksd`)
 
-2. Produce a  plot
-3. Using the plot and rules of thumb identify outliers and influential observations.
+2. Create an outlier plot and label any outliers. See the example [here](https://jrnold.github.io/intro-methods-notes/outliers.html#iver-and-soskice-data)
+3. Using the plot and rules of thumb identify outliers and influential observations
 
-## Influential Observations for outratio
 
-1. Run the regression dropping each observation and saving the coefficient for `outratio`. This is a method called a `jackknife`.
+## Influential Observations for a Coefficient
+
+1. Run *M2*, deleting each observation and saving the coefficient for `outratiodirff`. This is a method called the jackknife. You can use a for loop to do this, or you can use the function `jackknife` in the package [resamplr](https://github.com/jrnold/resamplr).
   
-    - For which observations is there the largest change?
-    - Which observations have the largest effect on our estimates of `outratio`? 
-    - How do these observations compare with those that had the largest effect on the 
+    - For which observations is there the largest change in the coefficient on `outratiodiff`?
+    1. Which observations have the largest effect on the estimate of `outratiodiff`? 
+    2. How do these observations compare with those that had the largest effect on the overall regression as measured with Cook's distance?
+    3. Compare the results of the jackknife to the `dfbeta` statistic for `outratiodiff`
 
-2. [Aronow and Samii (2016)](http://onlinelibrary.wiley.com/doi/10.1111/ajps.12185/abstract) note that the influence of observations in a regression depends on which observations 
+2. @AronowSamii2015a note that the influence of observations in a regression coefficient is different than the the influence of regression observations in the entire regression. Calculate the observation weights for `outratiodiff`.
+
+    1. Regress `outratiodiff` on the control variables
+    2. The weights of the observations are those with the highest squared errors from this regression. Which observations have the highest coefficient values? 
+    3. How do the observations with the highest regression weights compare with those with the highest changes in the regression coefficient from the jackknife?
 
 
 ## Omitted Variable Bias
 
-An informal way to assess the potential impact of omitted variables on the coeficient of the variable of interest is to coefficient variation when covariates are added as a measure of 
-[Nunn and Wantchekon](https://scholar.harvard.edu/files/nunn/files/nunn_wantchekon_aer_2011.pdf) (Table 4) calculate a simple statistic for omitted variable bias in OLS. This statistic "provide[s] a measure to gauge the strength of the likely
+An informal way to assess the potential impact of omitted variables on the coeficient of the variable of interest is to coefficient variation when covariates are added as a measure of the potential for omitted variable bias [@Oster2016a].
+@NunnWantchekon2011a (Table 4) calculate a simple statistic for omitted variable bias in OLS. This statistic "provide[s] a measure to gauge the strength of the likely
 bias arising from unobservables: how much stronger selection on unobservables,
 relative to selection on observables, must be to explain away the full estimated
 effect."
@@ -143,37 +172,46 @@ effect."
 2. Run a regression with the full set of controls. Denote the coefficient on the variable of interest in this regression as $\hat\beta_F$. 
 3. The ratio is $\hat\beta_F / (\hat\beta_R - \hat\beta_F)$
 
-**Q** Calculate this statistic for each regression and interpret it.
+Calculate this statistic for *M2* and interpret it.
 
 
 ## Heteroskedasticity
 
-Run the model with robust standard errors that asymtotically correct for heteroskedasticity.
-How do your inferences change?
+1. Run *M2* and *M3*  with a heteroskedasticity consistent (HAC), also called robust, standard error. How does this affect the standard errors on `outratio` coefficients? Use the **sandwich** package to add HAC standard errors [@Zeileis2004a].
+2. Model *M3* is almost equivalent to running separate regressions on each combination of `Type` and `Year`. 
+
+    1. Run a regression on each subset of combination of `Type` and `Year`.
+    2. How do the coefficients, standard errors, and regression standard errors ($\sigma$) differ from those of *M3*.
+    3. Compare the robust standard errors in *M3* to those in the subset regressions. What is the relationship between heteroskedasticity and difference between the single regression with interactions (*M3*) and the multiple regressions.
+    
 
 
 ## Weighted Regression
 
-We may be interested on the effect weighted by population. Run a regression weighted by Popn and interpret. Why would it make sense to weight by population? 
+1. Run *M2* and *M3* as weighted regressions, weighted by the population (`Popn`) and interpret the coefficients on `outratiodiff` and interactions. Informally assess the extent to which the coefficients are different. Which one does it seem to affect more? 
+2. What are some rationales for weighting by population? See the discussion in @SolonHaiderWooldridge2013a and @AngristPischke2014a.
+
+
+**BELOW THIS STILL IN PROGRESS**
 
 ## Average Marginal Effects
 
-**TODO**
+
 
 ## Cross-Validation
 
-Compare the previous models you have estimated using cross-validation
+When using regression causal estimation, model specification and choice should largely be based on avoiding omitted variables. 
+Another criteria for selecting models is to use their fit to the data.
+But a model's fit to data should not be assessed using only the in-sample data.
+That leads to overfitting---and the best model would always be to include an indicator variable for every observation
+Instead, a model's fit to data can be assessed by using its out-of-sample fit.
+One way to estimate the *expected* fit of a model to *new* data is cross-validation.
 
-1. OLS LOO-CV value
-2. 5-fold CV with RMSE
 
-The previous cross-validation methods had two assumptions: error metric and the observations w
 
 ## Bootstrapping
 
-Estimate the 95% confidence intervals of model with
-simple non-parametric bootstrapped standard errors. 
-The non-parametric bootstrap works as follows:
+Estimate the 95% confidence intervals of model with simple non-parametric bootstrapped standard errors. The non-parametric bootstrap works as follows:
 
 Let $\hat\theta$ be the estimate of a statistic. To calculate bootstrapped standard errors and confidence intervals use the following procedure.
 
@@ -182,10 +220,13 @@ For samples $b = 1, ..., B$.
 1. Draw a sample with replacement from the data
 2. Estimate the statistic of interest and call it $\theta_b^*$.
 
-Let $\theta^* = \{\theta_1^*, \dots, \theta_B^*}$ be the set of bootstrapped statistics.
+Let $\theta^* = \{\theta_1^*, \dots, \theta_B^*\}$ be the set of bootstrapped statistics.
 
-- standard error: $\hat\theta$ is $sd(\theta^*)$.
+- standard error: $\hat\theta$ is $\sd(\theta^*)$.
 - confidence interval:
 
-    - normal approximation. This calculates the confidence interval as usual but uses the bootstrapped standard error instead of the classical OLS standard error: $\hat\theta \pm t \sd(\theta^*)$
+    - normal approximation. This calculates the confidence interval as usual but uses the bootstrapped standard error instead of the classical OLS standard error: $\hat\theta \pm t_{\alpha/2,df} \cdot \sd(\theta^*)$
     - quantiles: A 95% confidence interval uses the 2.5% and 97.5% quantiles of $\theta^*$ for its upper and lower bounds.
+
+    
+## References
