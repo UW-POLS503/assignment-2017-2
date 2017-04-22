@@ -85,14 +85,16 @@ In @Yule1899a, the reg
 4. What is the difference between *M3* and *M4*. What are the pros and cons of each parameterization?
 4. Conduct F-tests on the hypotheses:
   
-  1. All interactions in *M4* are 0
-  2. The coefficients on `outratiodiff` in *M4* are the same across years
-  3. The coefficients on `outratiodiff` in *M4* are the same across PLU Types
-  4. The coefficients on `outratiodiff` in *M4* are the same across PLU Types and years.
+    1. All interactions in *M4* are 0
+    2. The coefficients on `outratiodiff` in *M4* are the same across years
+    3. The coefficients on `outratiodiff` in *M4* are the same across PLU Types
+    4. The coefficients on `outratiodiff` in *M4* are the same across PLU Types and years.
 
-5. What is the predicted value of the median PLU in each year and PLU Type for these models. Include confidence intervals. Plot these as point-ranges with the estimate and confidence intervals.
+5. Calculate the predicted value and confidence interval for the PLU with the median value of `outratiodiff`, `popratiodiff`, and `oldratiodiff` 
+  in each year and PLU Type for these models.
+  Plot the predicted value and confidence interval of these as point-ranges.
 6. As previously, calculate the predicted value of the median PLU in each year and PLU Type. But instead of confidence intervals include the prediction interval. How do the confidence and prediction intervals differ? What are their definitions?
-
+7. Repeat the previous step but use a **prediction interval** instead of a confidence interval. What is the difference between the confidence and prediction intervals.
 
 ## Functional Forms
 

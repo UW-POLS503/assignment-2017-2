@@ -120,20 +120,25 @@ following specifications. In Yule (1899), the reg
     cons of each parameterization?
 5.  Conduct F-tests on the hypotheses:
 
-6.  All interactions in *M4* are 0
-7.  The coefficients on `outratiodiff` in *M4* are the same across years
-8.  The coefficients on `outratiodiff` in *M4* are the same across PLU
-    Types
-9.  The coefficients on `outratiodiff` in *M4* are the same across PLU
-    Types and years.
+    1.  All interactions in *M4* are 0
+    2.  The coefficients on `outratiodiff` in *M4* are the same across
+        years
+    3.  The coefficients on `outratiodiff` in *M4* are the same across
+        PLU Types
+    4.  The coefficients on `outratiodiff` in *M4* are the same across
+        PLU Types and years.
 
-10. What is the predicted value of the median PLU in each year and PLU
-    Type for these models. Include confidence intervals. Plot these as
-    point-ranges with the estimate and confidence intervals.
-11. As previously, calculate the predicted value of the median PLU in
+6.  Calculate the predicted value and confidence interval for the PLU
+    with the median value of `outratiodiff`, `popratiodiff`, and
+    `oldratiodiff` in each year and PLU Type for these models. Plot the
+    predicted value and confidence interval of these as point-ranges.
+7.  As previously, calculate the predicted value of the median PLU in
     each year and PLU Type. But instead of confidence intervals include
     the prediction interval. How do the confidence and prediction
     intervals differ? What are their definitions?
+8.  Repeat the previous step but use a **prediction interval** instead
+    of a confidence interval. What is the difference between the
+    confidence and prediction intervals.
 
 Functional Forms
 ----------------

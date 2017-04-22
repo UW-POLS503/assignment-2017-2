@@ -290,26 +290,36 @@ following specifications. In Yule (1899), the reg
   pros and cons of each parameterization?
 \item
   Conduct F-tests on the hypotheses:
+
+  \begin{enumerate}
+  \def\labelenumii{\arabic{enumii}.}
+  \tightlist
+  \item
+    All interactions in \emph{M4} are 0
+  \item
+    The coefficients on \texttt{outratiodiff} in \emph{M4} are the same
+    across years
+  \item
+    The coefficients on \texttt{outratiodiff} in \emph{M4} are the same
+    across PLU Types
+  \item
+    The coefficients on \texttt{outratiodiff} in \emph{M4} are the same
+    across PLU Types and years.
+  \end{enumerate}
 \item
-  All interactions in \emph{M4} are 0
-\item
-  The coefficients on \texttt{outratiodiff} in \emph{M4} are the same
-  across years
-\item
-  The coefficients on \texttt{outratiodiff} in \emph{M4} are the same
-  across PLU Types
-\item
-  The coefficients on \texttt{outratiodiff} in \emph{M4} are the same
-  across PLU Types and years.
-\item
-  What is the predicted value of the median PLU in each year and PLU
-  Type for these models. Include confidence intervals. Plot these as
-  point-ranges with the estimate and confidence intervals.
+  Calculate the predicted value and confidence interval for the PLU with
+  the median value of \texttt{outratiodiff}, \texttt{popratiodiff}, and
+  \texttt{oldratiodiff} in each year and PLU Type for these models. Plot
+  the predicted value and confidence interval of these as point-ranges.
 \item
   As previously, calculate the predicted value of the median PLU in each
   year and PLU Type. But instead of confidence intervals include the
   prediction interval. How do the confidence and prediction intervals
   differ? What are their definitions?
+\item
+  Repeat the previous step but use a \textbf{prediction interval}
+  instead of a confidence interval. What is the difference between the
+  confidence and prediction intervals.
 \end{enumerate}
 
 \subsection{Functional Forms}\label{functional-forms}
