@@ -46,8 +46,8 @@ The data for @Yule1899a is split into two data frames: `pauperism_plu` contains 
 ```{r}
 pauperism <-
   left_join(datums::pauperism_plu, datums::pauperism_year,
-            by = "ID")
-            
+            by = "ID") %>%
+  mutate(year = as.character(year))
 ```
 The data consist of `r length(unique(pauperism$ID))` PLUs and the years: 1871, 1881, 1891 (years in which there was a UK census).
 
@@ -72,12 +72,12 @@ Instead of taking differences or percentages, Yule worked with "percent ratio di
 ## Original Specification
 
 Run regressions of `pauper` using the yearly level data with the following specifications. 
-In @Yule1899a, the reg
+In @Yule1899a, the regressions are
 
 - *M1:* `paupratiodiff ~ outratiodiff + year + Type`
 - *M2:* `paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type)`
 - *M3:* `-1  + paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type)`
-- *M3:* `paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type)`
+- *M4:* `paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type)`
 
 1. Present the regressions results in a regression table
 2. Interpret the coefficients for `outratiodiff` for each model.
@@ -90,11 +90,9 @@ In @Yule1899a, the reg
     3. The coefficients on `outratiodiff` in *M4* are the same across PLU Types
     4. The coefficients on `outratiodiff` in *M4* are the same across PLU Types and years.
 
-5. Calculate the predicted value and confidence interval for the PLU with the median value of `outratiodiff`, `popratiodiff`, and `oldratiodiff` 
-  in each year and PLU Type for these models.
+5. Calculate the predicted value and confidence interval for the PLU with the median value of `outratiodiff`, `popratiodiff`, and `oldratiodiff` in each year and PLU Type for these models.
   Plot the predicted value and confidence interval of these as point-ranges.
 6. As previously, calculate the predicted value of the median PLU in each year and PLU Type. But instead of confidence intervals include the prediction interval. How do the confidence and prediction intervals differ? What are their definitions?
-7. Repeat the previous step but use a **prediction interval** instead of a confidence interval. What is the difference between the confidence and prediction intervals.
 
 ## Functional Forms
 

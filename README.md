@@ -61,7 +61,8 @@ data with the PLU-year as the unit of observation.
 
     pauperism <-
       left_join(datums::pauperism_plu, datums::pauperism_year,
-                by = "ID")
+                by = "ID") %>%
+      mutate(year = as.character(year))
 
 The data consist of 599 PLUs and the years: 1871, 1881, 1891 (years in
 which there was a UK census).
@@ -101,14 +102,14 @@ Original Specification
 ----------------------
 
 Run regressions of `pauper` using the yearly level data with the
-following specifications. In Yule (1899), the reg
+following specifications. In Yule (1899), the regressions are
 
 -   *M1:* `paupratiodiff ~ outratiodiff + year + Type`
 -   *M2:*
     `paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type)`
 -   *M3:*
     `-1  + paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type)`
--   *M3:*
+-   *M4:*
     `paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type)`
 
 1.  Present the regressions results in a regression table
@@ -136,9 +137,6 @@ following specifications. In Yule (1899), the reg
     each year and PLU Type. But instead of confidence intervals include
     the prediction interval. How do the confidence and prediction
     intervals differ? What are their definitions?
-8.  Repeat the previous step but use a **prediction interval** instead
-    of a confidence interval. What is the difference between the
-    confidence and prediction intervals.
 
 Functional Forms
 ----------------
