@@ -105,7 +105,7 @@ htmlreg(models) %>% HTML() %>% browsable()
 summary(M1.reg)
 unique(pauperism$year)
 ```
-M1 <- There are 5 independent variables, outratiodiff, year1891, TypeMixed, TypeRural, and TypeUrban. For each one unit increase in outratio diff, there is a .23 average unit increase in paupratiodiff, ceteris paribus. Year is a categorical variable. Year1881 is the reference category, and the coefficient on Year1891 denotes a 14.70 increase in the mean of Y in 1891 vs. in 1881. Type is in a categorical variable, in which the Metropolitan type is being used as the reference variable. The coefficients denoting the difference in paupratio in the different types, when compared to the reference category. For instance, there is a decrease of 6.45 in the paupratio among people in the Mixed Type vs. people in the Metropolitan Type. The intercept coefficient denotes a paupratiodiff of 56.71, meaning that the paupratiodiff is 56.71 when all of the independent variables are 0.
+M1 <- There are 5 independent variables, outratiodiff, year1891, TypeMixed, TypeRural, and TypeUrban. For each one unit increase in outratio diff, there is a .23 average unit increase in paupratiodiff, ceteris paribus. Year is a categorical variable. Year1881 is the reference category, and the coefficient on Year1891 denotes a 14.70 increase in the mean of Y in 1891 vs. in 1881. Type is a categorical variable, in which the Metropolitan type is being used as the reference variable. The coefficients on the Type variables denote the difference in paupratio among the different types, when compared to the reference category. For instance, there is a decrease of 6.45 in the paupratio among people in the Mixed Type vs. people in the Metropolitan Type. The intercept coefficient denotes a paupratiodiff of 56.71, meaning that the paupratiodiff is 56.71 when all of the independent variables are 0.
 
 ```{r}
 summary(M2.reg)
@@ -192,7 +192,7 @@ anova(M4.reg, restricted2)
   3. The coefficients on `outratiodiff` in *M4* are the same across PLU Types
 The anova command generates results indicating that Type is not 0, and therefore outratio diff is not the same across all years, since controlling for year has an effect.
 ```{r}
-restricted3 <- lm(paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year), data=pauperism)
+restricted3 <- lm(paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type), data=pauperism)
 anova(M4.reg, restricted3)
 ```
 
@@ -269,6 +269,7 @@ $\log(\mathtt{pauper2}_t)-\log(\mathtt{pauper2}_{t -1}) = [\beta_0 + \beta_1 \ti
 ```{r}
 # need to get the lag on pauper
 # do this by creating dfs with only 1881 values and 1891 values, then join them by ID
+# re-do this section, to use lag for lag variables and I() for differences
 paup1881 <- pauperism %>% filter(year==1881)
 paup1881$pauper2t_minus_1 <- paup1881$pauper2
 paup1881$outratio_t_minus_1 <- paup1881$outratio
@@ -283,7 +284,7 @@ paup1891$Popn2_t <- paup1891$Popn2
 
 M5data <- inner_join(paup1881, paup1891, by="ID")
 
-M5.reg <- lm((log(pauper2t) - log(pauper2t_minus_1))~log(outratio_t)-log(outratio_t_minus_1) + log(Prop65_t) - log(Prop65_t_minus_1) + log(Popn2_t) - log(Popn2_t) + log(Popn2_t) - log(Popn2_t), data=M5data)
+M5.reg <- lm(I((log(pauper2t) -lag(log(pauper2t_minus_1))) ~ I(log(outratio_t)-log(outratio_t_minus_1)) + I(log(Prop65_t) - log(Prop65_t_minus_1)) + I(log(Popn2_t) - log(Popn2_t)) + log(Popn2_t) - log(Popn2_t), data=M5data)
 
 summary(M5.reg)
 ```
@@ -293,12 +294,13 @@ M5 is a log-log model that allows us to estimate elasticity. For each 1% increas
 
 The pros of the log parameterization are that logging variables allows for me to interpret the change in the independent/dependent variables as percentage changes as opposed to unit changes. I think that the key benefit of the change is interpretability.
 
-# Question: Does estimating the first difference remove the autocorrelation concerns?
-
 A negative of using log-models in this case is that we could get negative values (e.g. $outratio_t-outratio_{t-1}$ could be negative) and it is not possible to produce a logged value of negative numbers.
 
 # TODO: Ask about the best way to determine functional form
 Using a log-log model isn't a great functional form for this data, since there are negative values in the independent and dependent variables. Using a linear-linear model, and removing some of the outliers, seems like it would be a better functional form for estimating this data.
+
+# Why does logging help substantively in this  example?
+
 ```{r}
 qplot(outratio_t - outratio_t_minus_1, pauper2t - pauper2t_minus_1, data=M5data)
 ```
@@ -318,6 +320,7 @@ summary(M6.reg)
 - Interpret the coefficient on `outratio`. How is this different than model *M5*
 There are a few differences. Our independent variables are no longer the change in the independent variable over time, but rather are the actual values in the specific time periods. M6 also does not estimate elasticity, but rather the change in Y for each unit change in X.
 
+# Dealer choice on which you want to compare this model to
 - What accounts for the different in sample sizes in *M5* and *M2*?
 ```{r}
 nrow(model.frame(M6.reg))
@@ -344,10 +347,26 @@ For this use *M2*:
 
 1. For each observation, calculate and explain the following:
 
+#### These are tools for evaluating outliers
+#### When we talk about outliers, do we care only about outliers on y or x or care about both?
+#### Having an extreme x or extreme y doesn't necessarily mean the point is influential, it might not affect your slope at all (though it could affect betas)
+#### High leverage -- significant difference between the X of the point and the mean of X
+
   - hat value (`hatvalues`)
+# How to interpret hatvalues? Greater than 2 or 3 on the standardized hat scores are said to be high
+# Think about why X values are only values that can affect slope
   - standardized error (`rstandard`)
+
   - studentized error  (`rstudent`)
   - Cook's distance (`cooksd`)
+
+```{r}
+library(stats)
+hats <- hatvalues(M2.reg)
+standard_hats<- hatvalues(M2.reg)/mean(hatvalues(M2.reg))
+rstandard(M2.reg)
+```
+
 
 2. Create an outlier plot and label any outliers. See the example [here](https://jrnold.github.io/intro-methods-notes/outliers.html#iver-and-soskice-data)
 3. Using the plot and rules of thumb identify outliers and influential observations
@@ -356,7 +375,21 @@ For this use *M2*:
 ## Influential Observations for a Coefficient
 
 1. Run *M2*, deleting each observation and saving the coefficient for `outratiodirff`. This is a method called the jackknife. You can use a for loop to do this, or you can use the function `jackknife` in the package [resamplr](https://github.com/jrnold/resamplr).
-  
+
+# Benefits of jackknife -- we know exactly what we're removing and can say exactly the effect of each variable specifically
+# DFBeta --> kind of like the standardized jackknife
+
+```{r}
+library("bootstrap")
+jackknifeoutput <- matrix(NA, ncol=16, nrow=nrow(pauperism))
+for (i in 1:nrow(pauperism)){
+  jackknifeoutput[i,] <- coef((M2.reg))
+}
+```
+# Look at the most influential points and comment on them
+# Why use a jackknife? Can get a distribution and standard errors
+
+
     - For which observations is there the largest change in the coefficient on `outratiodiff`?
     1. Which observations have the largest effect on the estimate of `outratiodiff`? 
     2. How do these observations compare with those that had the largest effect on the overall regression as measured with Cook's distance?
@@ -390,9 +423,13 @@ Calculate this statistic for *M2* and interpret it.
 2. Model *M3* is almost equivalent to running separate regressions on each combination of `Type` and `Year`. 
 
     1. Run a regression on each subset of combination of `Type` and `Year`.
+# Set up the data to only include a specific type and a specific year    
+
     2. How do the coefficients, standard errors, and regression standard errors ($\sigma$) differ from those of *M3*.
     3. Compare the robust standard errors in *M3* to those in the subset regressions. What is the relationship between heteroskedasticity and difference between the single regression with interactions (*M3*) and the multiple regressions.
     
+
+# STOP HERE
 
 
 ## Weighted Regression
