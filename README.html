@@ -143,7 +143,8 @@ library(&quot;datums&quot;)</code></pre>
 <p>The data for <span class="citation">Yule (1899)</span> is split into two data frames: <code>pauperism_plu</code> contains data on the Poor Law Unions (PLU), and <code>pauperism_year</code>, panel data with the PLU-year as the unit of observation.</p>
 <pre class="r"><code>pauperism &lt;-
   left_join(datums::pauperism_plu, datums::pauperism_year,
-            by = &quot;ID&quot;)</code></pre>
+            by = &quot;ID&quot;) %&gt;%
+  mutate(year = as.character(year))</code></pre>
 <p>The data consist of 599 PLUs and the years: 1871, 1881, 1891 (years in which there was a UK census).</p>
 <p><span class="citation">Yule (1899)</span> is explcitly using regression for causal inference. The outcome variable of interest is:</p>
 <ul>
@@ -162,12 +163,12 @@ library(&quot;datums&quot;)</code></pre>
 <p>Instead of taking differences or percentages, Yule worked with “percent ratio differences”, <span class="math inline">\(100 \times \frac{x_{t}}{x_{t-1}}\)</span>, because he did not want to work with negative signs, presumably a concern at the because he was doing arithmetic by hand and this would make calculations more tedious or error-prone.</p>
 <div id="original-specification" class="section level2">
 <h2>Original Specification</h2>
-<p>Run regressions of <code>pauper</code> using the yearly level data with the following specifications. In <span class="citation">Yule (1899)</span>, the reg</p>
+<p>Run regressions of <code>pauper</code> using the yearly level data with the following specifications. In <span class="citation">Yule (1899)</span>, the regressions are</p>
 <ul>
 <li><em>M1:</em> <code>paupratiodiff ~ outratiodiff + year + Type</code></li>
 <li><em>M2:</em> <code>paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type)</code></li>
 <li><em>M3:</em> <code>-1  + paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type)</code></li>
-<li><em>M3:</em> <code>paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type)</code></li>
+<li><em>M4:</em> <code>paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type)</code></li>
 </ul>
 <ol style="list-style-type: decimal">
 <li>Present the regressions results in a regression table</li>
@@ -182,8 +183,7 @@ library(&quot;datums&quot;)</code></pre>
 <li>The coefficients on <code>outratiodiff</code> in <em>M4</em> are the same across PLU Types and years.</li>
 </ol></li>
 <li>Calculate the predicted value and confidence interval for the PLU with the median value of <code>outratiodiff</code>, <code>popratiodiff</code>, and <code>oldratiodiff</code> in each year and PLU Type for these models. Plot the predicted value and confidence interval of these as point-ranges.</li>
-<li>As previously, calculate the predicted value of the median PLU in each year and PLU Type. But instead of confidence intervals include the prediction interval. How do the confidence and prediction intervals differ? What are their definitions?</li>
-<li><p>Repeat the previous step but use a <strong>prediction interval</strong> instead of a confidence interval. What is the difference between the confidence and prediction intervals.</p></li>
+<li><p>As previously, calculate the predicted value of the median PLU in each year and PLU Type. But instead of confidence intervals include the prediction interval. How do the confidence and prediction intervals differ? What are their definitions?</p></li>
 </ol>
 </div>
 <div id="functional-forms" class="section level2">

@@ -203,7 +203,8 @@ observation.
 \begin{Highlighting}[]
 \NormalTok{pauperism <-}
 \StringTok{  }\KeywordTok{left_join}\NormalTok{(datums}\OperatorTok{::}\NormalTok{pauperism_plu, datums}\OperatorTok{::}\NormalTok{pauperism_year,}
-            \DataTypeTok{by =} \StringTok{"ID"}\NormalTok{)}
+            \DataTypeTok{by =} \StringTok{"ID"}\NormalTok{) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{year =} \KeywordTok{as.character}\NormalTok{(year))}
 \end{Highlighting}
 \end{Shaded}
 
@@ -257,7 +258,7 @@ more tedious or error-prone.
 \subsection{Original Specification}\label{original-specification}
 
 Run regressions of \texttt{pauper} using the yearly level data with the
-following specifications. In Yule (1899), the reg
+following specifications. In Yule (1899), the regressions are
 
 \begin{itemize}
 \tightlist
@@ -271,7 +272,7 @@ following specifications. In Yule (1899), the reg
   \emph{M3:}
   \texttt{-1\ \ +\ paupratiodiff\ \textasciitilde{}\ (outratiodiff\ +\ popratiodiff\ +\ oldratiodiff)\ *\ (year\ +\ Type)}
 \item
-  \emph{M3:}
+  \emph{M4:}
   \texttt{paupratiodiff\ \textasciitilde{}\ (outratiodiff\ +\ popratiodiff\ +\ oldratiodiff)\ *\ (year\ +\ Type)}
 \end{itemize}
 
@@ -316,10 +317,6 @@ following specifications. In Yule (1899), the reg
   year and PLU Type. But instead of confidence intervals include the
   prediction interval. How do the confidence and prediction intervals
   differ? What are their definitions?
-\item
-  Repeat the previous step but use a \textbf{prediction interval}
-  instead of a confidence interval. What is the difference between the
-  confidence and prediction intervals.
 \end{enumerate}
 
 \subsection{Functional Forms}\label{functional-forms}
