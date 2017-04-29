@@ -13,6 +13,15 @@ output:
 bibliography: assignment2.bib
 ---
 
+# Questions on homework
+F-test #2 -- why not just use a t-test? think we're only testing 1 coefficient
+
+For the differenced model, should I assume Prop65 = Pop65/Popn?
+
+How to handle left side of differenced model -- do I carry over piece of it to the right side? how to do this without creating an unwanted beta?
+
+Bias question in the non-differenced model -- which one causes more bias? how to start thinking about that. if the 2 variables should be independent, would the differenced model induce bias?
+
 
 This assignment works through an example in @Yule1899a:
 
@@ -38,7 +47,7 @@ library("modelr")
 While only a subset of the original data of @Yule1899a was printed in the article itself, @Plewis2015a reconstructed the orginal data and @Plewis2017a replicated the original paper. This data is included in the package **datums**. This package is not on CRAN, but can be downloaded from github.
 **IMPORTANT** install the latest version of **datums** since a few fixes were recently made to the `pauperism` dataset.
 ```{r}
-# devtools::install_github("jrnold/datums")
+# devtools::install_github("jrnold/datums", force=TRUE)
 library("datums")
 ```
 
@@ -83,7 +92,7 @@ In @Yule1899a, the reg
 pauperism$year <- as.factor(pauperism$year)
 M1.reg <- lm(paupratiodiff ~ outratiodiff + year + Type, data=pauperism)
 M2.reg <- lm(paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type), data=pauperism)
-M3.reg <- lm(-1  + paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type), data=pauperism)
+M3.reg <- lm(I(-1  + paupratiodiff) ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type), data=pauperism)
 M4.reg <- lm(paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type), data=pauperism)
 ```
 
@@ -105,7 +114,7 @@ htmlreg(models) %>% HTML() %>% browsable()
 summary(M1.reg)
 unique(pauperism$year)
 ```
-M1 <- There are 5 independent variables, outratiodiff, year1891, TypeMixed, TypeRural, and TypeUrban. For each one unit increase in outratio diff, there is a .23 average unit increase in paupratiodiff, ceteris paribus. Year is a categorical variable. Year1881 is the reference category, and the coefficient on Year1891 denotes a 14.70 increase in the mean of Y in 1891 vs. in 1881. Type is a categorical variable, in which the Metropolitan type is being used as the reference variable. The coefficients on the Type variables denote the difference in paupratio among the different types, when compared to the reference category. For instance, there is a decrease of 6.45 in the paupratio among people in the Mixed Type vs. people in the Metropolitan Type. The intercept coefficient denotes a paupratiodiff of 56.71, meaning that the paupratiodiff is 56.71 when all of the independent variables are 0.
+M1 <- There are 5 independent variables, outratiodiff, year1891, TypeMixed, TypeRural, and TypeUrban. For each one unit increase in outratio diff, there is a .23 average unit increase in paupratiodiff, ceteris paribus. Year is a categorical variable. Year1881 is the reference category, and the coefficient on Year1891 denotes a 14.70 increase in the mean of Y in 1891 vs. in 1881. Type is a categorical variable, in which the Metropolitan type is being used as the reference category. The coefficients on the Type variables denote the difference in paupratio among the different types, when compared to the reference category. For instance, there is a decrease of 6.45 in paupratio among people in the Mixed Type vs. people in the Metropolitan Type. The intercept coefficient denotes a paupratiodiff of 56.71, meaning that the paupratiodiff is 56.71 when all of the independent variables are 0.
 
 ```{r}
 summary(M2.reg)
@@ -113,16 +122,16 @@ summary(M2.reg)
 
 M2 <- The interpretation of M2 is simalar to M1 in some ways. For instance, for each one unit increase in outratiodiff, there is a .23 average unit increase in paupratiodiff and the intercept coefficient denotes a paupratiodiff of -55.34, meaning that the paupratiodiff is -55.34 when all of the independent variables are 0. The coefficients on year and the Type variables are interpreted in the same way as they were interpreted in M1 as well. 
 
-There is a key difference between M1 and M2; the inclusion of the interaction terms in M2. There are interaction terms for popratiodiff and year, popratiodiff and Type, oldratiodif and year, and oldratiodiff and Type. Type and year are categorical variables, so we create dummies from the values in each. For popratiodiff*Type, there are coefficients for popratiodiff*TypeMixed, popratiodiff*TypeRural, and popratiodiff*TypeUrban. I'm going to use popratiodiff*TypeMixed as an example, but the intuition holds for the other terms. Where TypeMixed is 0 (i.e. the person doesn't live in a Mixed PLU), the interaction term drops out of the equation. When TypeMixed is 1, the slope of the fitted value equation decreases by about .00237 (the coefficient is -2.372e-02). We can interpret all of the other interaction terms including Type and year similarly.
+There is a key difference between M1 and M2; the inclusion of the interaction terms in M2. There are interaction terms for popratiodiff and year, popratiodiff and Type, oldratiodif and year, and oldratiodiff and Type. Type and year are categorical variables, so we create dummies from the values in each. For popratiodiff x Type, there are coefficients for popratiodiff x TypeMixed, popratiodiff x TypeRural, and popratiodiff x TypeUrban. I'm going to use popratiodiff x TypeMixed as an example, but the intuition holds for the other terms. Where TypeMixed is 0 (i.e. the person doesn't live in a Mixed PLU), the interaction term is 0 and therefore does not have an effect on the dependent variable or other betas. When TypeMixed is 1, the slope of the fitted value equation decreases by about .00237 (the coefficient is -2.372e-02). We can interpret all of the other interaction terms including Type and year similarly.
 
 
 ```{r}
 summary(M3.reg)
 ```
 
-M3 <- There are similarities between M3 and M1 and M2. For each one unit increase in outratiodiff, there is a .53 average unit increase in paupratiodiff. The intercept coefficient denots a paupratiodiff of 6.17, meaning that the paupratiodiff is 6.17 when all of the independent variables are 0.
+M3 <- There are similarities between M3 and M1 and M2. For each one unit increase in outratiodiff, there is a .53 average unit increase in paupratiodiff. The intercept coefficient denotes a paupratiodiff of 6.17, meaning that the paupratiodiff is 6.17 when all of the independent variables are 0.
 
-M3 is different from M2 in 2 ways 1) there is an affine transformation on the dependent variable and 2) interaction terms are now included on outratiodiff and year as well as type. We can interpret the new interaction terms similarly as we did in M2. The affine transformation affects the intercept (more details on affine transformations provided in my answer to question 4).
+M3 is different from M2 in 2 ways 1) there is an affine transformation on the dependent variable and 2) interaction terms are now included on outratiodiff and year as well as outratiodiff and type. We can interpret the new interaction terms similarly as we did in M2. The affine transformation affects the intercept (more details on affine transformations provided in my answer to question 4).
 
 ```{r}
 summary(M4.reg)
@@ -134,15 +143,20 @@ M4 is the same as M3 except the affine transformation is not included. The affin
 
 # 3. Write the equations for each or all models, and describe the model with a sentence or two. Try to be as concise as possible. Look at recent journal articles for examples of the wording and format.
 
+I checked out the phrasing in Delamou et al. (citation below) to get a rough idea of how to phrase the wording.
+
+Citation: Delamou, Alexandre, et al. "Effect of Ebola virus disease on maternal and child health services in Guinea: a retrospective observational cohort study." The Lancet Global Health 5.4 (2017): e448-e457.
+APA	
+
 ```{r}
 summary(M1.reg)
 ```
 
 The M1 equation is:
 \[
-paupratiodiff_i = B_0 + B_1outratiodiff_i + year_i + TypeMixed_i + TypeRural_i + TypeUrban_i + \epsilon
+paupratiodiff_i = B_0 + B_1outratiodiff_i + year1891_i + TypeMixed_i + TypeRural_i + TypeUrban_i + \epsilon_i
 \]
-where \[B_0\] is the intercept, estimating the paupratiodiff when all independent variables are 0, \[B_1outratiodiff_i\] is the estimated change in paupratiodiff associated with a one unit increase in outratiodiff,  \[year_i\] is the estimated change in the dependent variable associated with a one-unit increase in year, the Type variables are dummy variables indicating whether the respondent lives in one of the three regions (if all of the variables are 0, then the respondent lives in the reference category, which is the Metropolitan PLU), and \[\epsilon\] is the error term, denoting the inability of our conditional expectation function to fully explain Y.
+where \[B_0\] is the intercept, estimating the paupratiodiff when all independent variables are 0, \[B_1outratiodiff_i\] is the estimated change in paupratiodiff associated with a one unit increase in outratiodiff, and \[year1891_i\] is a dummy variable associated with the year to which each data point applies. The Type variables are dummy variables associated with the region in which each respondent lives (the reference categoryis the Metropolitan PLU), and \[\epsilon\] is the error term, denoting the inability of our conditional expectation function to fully explain Y.
 
 ```{r}
 summary(M2.reg)
@@ -150,15 +164,15 @@ summary(M2.reg)
 
 The M2 equation is:
 \[
-paupratiodiff_i = B_0 + B_1outratiodiff_i + popratiodiff_i + oldratiodiff_i + year_i + TypeMixed_i + TypeRural_i + TypeUrban_i + popratiodiff*year + popratiodiff*TypeMixed + popratiodiff*TypeRural + popratiodiff*TypeUrban + oldratiodiff*year + oldratiodiff*TypeMixed + oldratiodiff*TypeRural + oldratiodiff*TypeUrban + \epsilon
+paupratiodiff_i = B_0 + B_1outratiodiff_i + popratiodiff_i + oldratiodiff_i + year1891_i + TypeMixed_i + TypeRural_i + TypeUrban_i + popratiodiff*year + popratiodiff*TypeMixed + popratiodiff*TypeRural + popratiodiff*TypeUrban + oldratiodiff*year + oldratiodiff*TypeMixed + oldratiodiff*TypeRural + oldratiodiff*TypeUrban + \epsilon
 \]
-where \[B_0\] is the intercept, estimating the paupratiodiff when all independent variables are 0, \[B_1outratiodiff_i\] is the estimated change in paupratiodiff associated with a one unit increase in outratiodiff,  \[year_i\] is the estimated change in the dependent variable associated with a one-unit increase in year, \[Type_i\] is a categorical variable denoting the change in Y associated with different categories of type, and \[\epsilon\] is the error term, denoting the inability of our conditional expectation function to fully explain Y. There are also interaction terms associated with this model -- popratiodiff*year, oldratiodiff*year, popratiodiff*Type, and oldratiodiff*Type. 
+where \[B_0\] is the intercept, estimating the paupratiodiff when all independent variables are 0, \[B_1outratiodiff_i\] is the estimated change in paupratiodiff associated with a one unit increase in outratiodiff, and \[year1891_i\] is a dummy variable associated with the year to which each data point applies. The Type variables are dummy variables associated with the region in which each respondent lives (the reference categoryis the Metropolitan PLU), and \[\epsilon\] is the error term, denoting the inability of our conditional expectation function to fully explain Y.There are also interaction terms associated with this model -- popratiodiff*year, oldratiodiff*year, popratiodiff*Type, and oldratiodiff*Type. 
 
 The M3 equation is:
 \[
 1 -paupratiodiff_i = B_0 + B_1outratiodiff_i + popratiodiff_i + oldratiodiff_i + year_i + TypeMixed_i + TypeRural_i + TypeUrban_i + popratiodiff*year + popratiodiff*TypeMixed + popratiodiff*TypeRural + popratiodiff*TypeUrban + oldratiodiff*year + oldratiodiff*TypeMixed + oldratiodiff*TypeRural + oldratiodiff*TypeUrban + outratiodiff*year + outratiodiff*TypeMixed + outratiodiff*TypeRural + outratiodiff*TypeUrban + \epsilon
 \]
-which is the same equation as M2, except there are now interaction terms for outradtiodiff and year and Type, as well as the affine transformation applied to the dependent variable. 
+which is the same equation as M2, except there are now interaction terms for outradtiodiff and year and Type, as well as an affine transformation applied to the dependent variable. 
 
 The M4 equation is:
 \[
@@ -171,83 +185,129 @@ The equation is the same as M3, but there is no affine transformation.
 
 M3 has an affine transformation, which slightly changes the intercept. Affine transformation are beneficial for interpretation sometimes, though it does not seem that an affine transformation was beneficial in this case. If we want to transform our data to get more sensical results, sometimes we can apply an affine transformation. Affine transformations do not change the interpretation of regression results.
 
-5. Conduct F-tests on the hypotheses:
+# 5. Conduct F-tests on the hypotheses:
 
-  1. All interactions in *M4* are 0
+## 1. All interactions in *M4* are 0
 ```{r}
 restricted1 <- lm(paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff), data=pauperism)
 anova(M4.reg, restricted1)
 ```  
-The small p-value indicate that we can and should reject the null hypothesis that all of the interaction betas are 0.
+The restricted model removes all interaction terms. The small p-value indicate that we can and should reject the null hypothesis that all of the interaction betas are 0.
 
-#### 2. Just asking if all of the interactions between outratio diff and years are 0.
-# TODO: Ask for help on this question
 
-  2. The coefficients on `outratiodiff` in *M4* are the same across years]
+## 2. The coefficients on `outratiodiff` in *M4* are the same across years
 ```{r}
-restricted2 <- lm(paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (Type + year), data=pauperism)
+restricted2 <- lm(paupratiodiff ~ outratiodiff + outratiodiff*Type + (popratiodiff + oldratiodiff) * (Type + year), data=pauperism)
 anova(M4.reg, restricted2)
 ```  
+The question is asking if the coefficient on outratiodiff x Year is 0, meaning that there is no change in ouratio diff across years. Therefore, we can drop the outratio x Year interaction in the restricted equation and run the anova to get our F test (which shows that we can reject the null that outratio x Year is 0).
 
   3. The coefficients on `outratiodiff` in *M4* are the same across PLU Types
-The anova command generates results indicating that Type is not 0, and therefore outratio diff is not the same across all years, since controlling for year has an effect.
+
 ```{r}
-restricted3 <- lm(paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type), data=pauperism)
+restricted3 <- lm(paupratiodiff ~ outratiodiff + outratiodiff*year + (popratiodiff + oldratiodiff) * (year + Type), data=pauperism)
 anova(M4.reg, restricted3)
 ```
+The question is asking if the coefficients on outratiodiff x TypeMixed, outradtiodiff x TypeRural, and outratiodiff x TypeUrban are 0, meaning that there is no change in ouratio diff across types. Therefore, we can drop the outratiodiff x Type nteraction variables in the restricted equation and run the anova to get our F test (which shows that we can reject the null that the outratio x Type coefficients are 0).
 
 #### 4 and 1 are the same, except outratiodiff is the only term that we're using in M4. If you can reject the null in 4, it would imply that you can reject the null in M1, but not the other way around
   4. The coefficients on `outratiodiff` in *M4* are the same across PLU Types and years.
 ```{r}
-restricted4 <- lm(paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff), data=pauperism)
+restricted4 <- lm(paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (Type + year), data=pauperism)
 anova(M4.reg, restricted4)
 ```
-
+The question is asking if the interactions on outratiodiff are significantly different from 0. Therefore, we can drop the outratiodiff x Type and outratio x year nteraction variables in the restricted equation and run the anova to get our F test (which shows that we can reject the null that the outratio interaction coefficients are 0).
 
 
 # 6. Calculate the predicted value and confidence interval for the PLU with the median value of outratiodiff, popratiodiff, and oldratiodiff in each year and PLU Type for these models. Plot the predicted value and confidence interval of these as point-ranges.
 
-Use the predict function and pass a matrix of independent values into the matrix. One column for each X.
-
-# Check the code from the first lab for help in doing this question
-# Another option is to use the predict function with the newdata argument specified
-# Broom package is helpful in cleaning up the output of predict (augment.lm)
-
 ```{r}
+# get the medians for each type and year
 plu_medians <- pauperism %>% group_by(year, Type)  %>%
   filter(!is.na(Type), year %in% c(1881, 1891)) %>%
   summarise_at(vars(outratiodiff, popratiodiff, oldratiodiff),
                median, na.rm=TRUE)
 
 library("broom")
+
+# M1.reg
+augment(M1.reg, newdata = plu_medians, conf.int=TRUE, conf.level=.95)
+predictions_ci <- predict(M1.reg, newdata = plu_medians, interval="confidence", conf.level=.95)
+
+# now try to plot the plot the points
+plot_data <- cbind(predictions_ci, as.data.frame(plu_medians))
+library("ggplot2")
+plu_medians
+ggplot(plot_data, aes(x=outratiodiff, y=fit)) + geom_point(size=2) + geom_errorbar(aes(ymax=upr, ymin=lwr))
+ggplot(plot_data, aes(x=popratiodiff, y=fit)) + geom_point(size=2) + geom_errorbar(aes(ymax=upr, ymin=lwr))
+ggplot(plot_data, aes(x=oldratiodiff, y=fit)) + geom_point(size=2) + geom_errorbar(aes(ymax=upr, ymin=lwr))
+# referenced this stack overflow post for help in writing the code to plot:  http://stackoverflow.com/questions/14069629/plotting-confidence-intervals. Citation: "Plotting Confidence Intervals." Stackoverflow.com. Stack Exchange Inc, 28 Dec. 2012. Web. <http://stackoverflow.com/questions/14069629/plotting-confidence-intervals>. Referenced answer by EDi, which was last edited on 12/28/2012
+
+# M2.reg
+augment(M2.reg, newdata = plu_medians, conf.int=TRUE, conf.level=.95)
+predictions_ci <- predict(M2.reg, newdata = plu_medians, interval="confidence", conf.level=.95)
+
+# now try to plot the plot the points
+plot_data <- cbind(predictions_ci, as.data.frame(plu_medians))
+library("ggplot2")
+plu_medians
+ggplot(plot_data, aes(x=outratiodiff, y=fit)) + geom_point(size=2) + geom_errorbar(aes(ymax=upr, ymin=lwr))
+ggplot(plot_data, aes(x=popratiodiff, y=fit)) + geom_point(size=2) + geom_errorbar(aes(ymax=upr, ymin=lwr))
+ggplot(plot_data, aes(x=oldratiodiff, y=fit)) + geom_point(size=2) + geom_errorbar(aes(ymax=upr, ymin=lwr))
+# referenced this stack overflow post for help in writing the code to plot:  http://stackoverflow.com/questions/14069629/plotting-confidence-intervals. Citation: "Plotting Confidence Intervals." Stackoverflow.com. Stack Exchange Inc, 28 Dec. 2012. Web. <http://stackoverflow.com/questions/14069629/plotting-confidence-intervals>. Referenced answer by EDi, which was last edited on 12/28/2012
+
+# M3.reg
+augment(M3.reg, newdata = plu_medians, conf.int=TRUE, conf.level=.95)
+predictions_ci <- predict(M3.reg, newdata = plu_medians, interval="confidence", conf.level=.95)
+
+# now try to plot the plot the points
+plot_data <- cbind(predictions_ci, as.data.frame(plu_medians))
+library("ggplot2")
+plu_medians
+ggplot(plot_data, aes(x=outratiodiff, y=fit)) + geom_point(size=2) + geom_errorbar(aes(ymax=upr, ymin=lwr))
+ggplot(plot_data, aes(x=popratiodiff, y=fit)) + geom_point(size=2) + geom_errorbar(aes(ymax=upr, ymin=lwr))
+ggplot(plot_data, aes(x=oldratiodiff, y=fit)) + geom_point(size=2) + geom_errorbar(aes(ymax=upr, ymin=lwr))
+# referenced this stack overflow post for help in writing the code to plot:  http://stackoverflow.com/questions/14069629/plotting-confidence-intervals. Citation: "Plotting Confidence Intervals." Stackoverflow.com. Stack Exchange Inc, 28 Dec. 2012. Web. <http://stackoverflow.com/questions/14069629/plotting-confidence-intervals>. Referenced answer by EDi, which was last edited on 12/28/2012
+
+# M4.reg
 augment(M4.reg, newdata = plu_medians, conf.int=TRUE, conf.level=.95)
 predictions_ci <- predict(M4.reg, newdata = plu_medians, interval="confidence", conf.level=.95)
 
-predictions_ci
-# to plot, need to bind cols plu_medians and plu_predictions
-# do this for a bunch of different models
-# what's the difference between a confidence interval and prediction interval? CI is a measure of our uncertainty about the conditional mean (y-hat). Prediction interval is the measure of the uncertainty in the actual ys given x. CEF gives us the expeced value of Y given X. Prediction interval is basically the uncertainty associated with the expected value of y + the uncertainty regarding the actual values of y, given X. 
+# now try to plot the plot the points
+plot_data <- cbind(predictions_ci, as.data.frame(plu_medians))
+library("ggplot2")
+plu_medians
+ggplot(plot_data, aes(x=outratiodiff, y=fit)) + geom_point(size=2) + geom_errorbar(aes(ymax=upr, ymin=lwr))
+ggplot(plot_data, aes(x=popratiodiff, y=fit)) + geom_point(size=2) + geom_errorbar(aes(ymax=upr, ymin=lwr))
+ggplot(plot_data, aes(x=oldratiodiff, y=fit)) + geom_point(size=2) + geom_errorbar(aes(ymax=upr, ymin=lwr))
+# referenced this stack overflow post for help in writing the code to plot:  http://stackoverflow.com/questions/14069629/plotting-confidence-intervals. Citation: "Plotting Confidence Intervals." Stackoverflow.com. Stack Exchange Inc, 28 Dec. 2012. Web. <http://stackoverflow.com/questions/14069629/plotting-confidence-intervals>. Referenced answer by EDi, which was last edited on 12/28/2012
 ```
+
 
 7. As previously, calculate the predicted value of the median PLU in each year and PLU Type. But instead of confidence intervals include the prediction interval. How do the confidence and prediction intervals differ? What are their definitions?
 
 ```{r}
-predictions_pi <- predict(M4.reg, newdata = plu_medians, interval="prediction", conf.level=.95)
-predictions_pi
-```
+# M1
+predictions_pi <- predict(M1.reg, newdata = plu_medians, interval="prediction", conf.level=.95)
 
-TODO --> Do predictions for all models and put output into a table.
+# M2
+predictions_pi <- predict(M2.reg, newdata = plu_medians, interval="prediction", conf.level=.95)
+
+# M3
+predictions_pi <- predict(M3.reg, newdata = plu_medians, interval="prediction", conf.level=.95)
+
+# M4
+predictions_pi <- predict(M4.reg, newdata = plu_medians, interval="prediction", conf.level=.95)
+```
 
 Confidence intervals measure the uncertainty around the mean estimated by the conditional expectation function (E(Y|X)). Prediction intervals are always wider than confidence intervals, since they account for the uncertainty surrounding the predicted y as well as the uncertainty around the actual Y values, given X (Y|X).  
 
 The equation for a confidence interval is: V(y^)=σ^x′0(X′X)−1x. The equation for a predication interval is V(y)=σ^2(1+x′0(X′X)−1x0). The difference between the 2 equations is the addition of the variance of the regression as well as the replacement of the standard error of the regression in the confidence interval equation with the the variance of the regression in the prediction interval equation. 
 
-Citations -- https://www.ma.utexas.edu/users/mks/statmistakes/CIvsPI.html and intro methods notes
+Citations -- "Using Confidence Intervals When Prediction Intervals Are Needed." Utexas.edu. University of Texas, n.d. Web. 29 Apr. 2017. <https://www.ma.utexas.edu/users/mks/statmistakes/CIvsPI.html>.
 
 
 ## Functional Forms
-
-# Look through functional forms --> take the logs of everything
 
 The regression line of the model estimated in @Yule1899a (ignoring the year and region terms and interactions) can be also written as
 $$
@@ -260,78 +320,57 @@ $$
 
 1. Take the logarithm of each side, and simplify so that $\log(\mathtt{pauper2}_t/\mathtt{pauper2}_{t -1})$ is the outcome and the predictors are all in the form $\log(x_t) - \log(x_{t - 1}) = \log(x_t / x_{t - 1})$.
 
-# Do format like below
-$\log(\mathtt{pauper2}_t)-\log(\mathtt{pauper2}_{t -1}) = \beta_0 + \beta_1 \times (log(pop_t) - log(pop_{t-1}))$
-
-$\log(\mathtt{pauper2}_t)-\log(\mathtt{pauper2}_{t -1}) = [\beta_0 + \beta_1 \times 100 \times \log(outratio_t) - \log(outratio_{t-1} + \beta_2 \times 100 \times \log(Popn65_t)-log(Popn65_{t-1})-log(Popn2_t)-log(Popn2_{t-1}) \times \beta_3 \times 100 \times \log(Popn2_t)-log(Popn2_{t-1}) + log(Popn2_t)-log(Popn2_{t-1})]/100$
+#### Since I can't find Popn65 in the dataset, I'm going to assume that Popn65/Popn2 = Prop65 and use the Prop65 variable in my equation below and calculations
+$\log(\mathtt{pauper2}_t)-\log(\mathtt{pauper2}_{t-1}) = \beta_0 + \beta_1 \times (log(outratio_t) - log(outratio_{t-1})) + \beta_2 \times(log(prop65_t)-log(prop65_{t-1})) + \beta_3 \times (log(Popn2_t) - log((Popn2_{t-1}))) + log(Popn2_t) - log(Popn2_{t-1})$
 
 2. Estimate the model with logged difference predictors, Year, and month and interpret the coefficient on $\log(outratio_t)$.
 ```{r}
-# need to get the lag on pauper
-# do this by creating dfs with only 1881 values and 1891 values, then join them by ID
-# re-do this section, to use lag for lag variables and I() for differences
-paup1881 <- pauperism %>% filter(year==1881)
-paup1881$pauper2t_minus_1 <- paup1881$pauper2
-paup1881$outratio_t_minus_1 <- paup1881$outratio
-paup1881$Prop65_t_minus_1 <- paup1881$Prop65
-paup1881$Popn2_t_minus_1 <- paup1881$Popn2
+diff.reg <- lm(log(pauper2) - log(lag(pauper2)) - (log(Popn2) - log(lag(Popn2))) ~ I(log(outratio)-log(lag(outratio))) + I(log(Prop65) - log(lag(Prop65))) + I(log(Popn2) - log(lag(Popn2))), data=pauperism)
 
-paup1891 <- pauperism %>% filter(year==1891)
-paup1891$pauper2t <- paup1891$pauper2
-paup1891$outratio_t <- paup1891$outratio
-paup1891$Prop65_t <- paup1891$Prop65
-paup1891$Popn2_t <- paup1891$Popn2
-
-M5data <- inner_join(paup1881, paup1891, by="ID")
-
-M5.reg <- lm(I((log(pauper2t) -lag(log(pauper2t_minus_1))) ~ I(log(outratio_t)-log(outratio_t_minus_1)) + I(log(Prop65_t) - log(Prop65_t_minus_1)) + I(log(Popn2_t) - log(Popn2_t)) + log(Popn2_t) - log(Popn2_t), data=M5data)
-
-summary(M5.reg)
+summary(diff.reg)
 ```
-M5 is a log-log model that allows us to estimate elasticity. For each 1% increase in the first difference (the difference between $outratio_t$ and $outratio_{t-1}$), there is a .8% increase in the dependent variable (the difference betweeen $pauper2_t$ and $pauper2_{t-1}$.
+Diff.reg is a log-log model that allows us to estimate elasticity. For each 1% increase in the first difference (the difference between $outratio_t$ and $outratio_{t-1}$), there is a .5% increase in the dependent variable (the difference betweeen $pauper2_t$ and $pauper2_{t-1}$.
 
 3. What are the pros and cons of this parameterization of the model relative to the one in @Yule1899a? Focus on interpretation and the desired goal of the inference rather than the formal tests of the regression. Can you think of other, better functional forms?
 
-The pros of the log parameterization are that logging variables allows for me to interpret the change in the independent/dependent variables as percentage changes as opposed to unit changes. I think that the key benefit of the change is interpretability.
+The pros of the log parameterization are that logging variables allows for me to interpret the change in the independent/dependent variables as percentage changes as opposed to unit changes. Unit changes in percent ratio differences are pretty hard to understand, whereas percentage changes in the first difference are easier to understand. I think that the key benefit of the change is interpretability.
 
 A negative of using log-models in this case is that we could get negative values (e.g. $outratio_t-outratio_{t-1}$ could be negative) and it is not possible to produce a logged value of negative numbers.
 
-# TODO: Ask about the best way to determine functional form
-Using a log-log model isn't a great functional form for this data, since there are negative values in the independent and dependent variables. Using a linear-linear model, and removing some of the outliers, seems like it would be a better functional form for estimating this data.
-
-# Why does logging help substantively in this  example?
+Using a log-log model isn't a great functional form for this data, since there are negative values in all of the independent variables as well as the dependent variable. Using a linear-linear model, and removing some of the outliers, seems like it would be a better functional form for estimating this data.
 
 ```{r}
-qplot(outratio_t - outratio_t_minus_1, pauper2t - pauper2t_minus_1, data=M5data)
+qplot(outratio - lag(outratio), pauper2 - lag(pauper2), data=pauperism)
+qplot(Prop65 - lag(Prop65), pauper2 - lag(pauper2), data=pauperism)
+qplot(Popn2 - lag(Popn2), pauper2 - lag(pauper2), data=pauperism)
 ```
 
 
-## Non-differenced Model
+# Non-differenced Model
 
 Suppose you estimate the model (*M5*) without differencing,
 ```
 pauper2 ~ outratio + (Popn2 + Prop65) * (year + Type)
 ```
 ```{r}
-M6.reg <- lm(pauper2 ~ outratio + (Popn2 + Prop65) * (year + Type), data=pauperism)
-summary(M6.reg)
+non_diff.reg <- lm(pauper2 ~ outratio + (Popn2 + Prop65) * (year + Type), data=pauperism)
+summary(non_diff.reg)
 ```
 
-- Interpret the coefficient on `outratio`. How is this different than model *M5*
-There are a few differences. Our independent variables are no longer the change in the independent variable over time, but rather are the actual values in the specific time periods. M6 also does not estimate elasticity, but rather the change in Y for each unit change in X.
+# Interpret the coefficient on `outratio`. How is this different than model *M2*?
+In  M2, the independent variables are the ratio difference values. In M6, the independent values are the actual ratio estimates in each time period. In M6, for each 1 unit increase in outratio, there is a corresponding .0012 unit increase in pauper2.
 
-# Dealer choice on which you want to compare this model to
-- What accounts for the different in sample sizes in *M5* and *M2*?
+# What accounts for the different in sample sizes in *M5* and *M2*?
 ```{r}
-nrow(model.frame(M6.reg))
+nrow(model.frame(non_diff.reg))
 # [1] 1773
-nrow(model.frame(M5.reg))
-# [1] 592
+nrow(model.frame(M2.reg))
+# [1] 1180
 ```
-In M5, there are fewer data points because we are looking at the change in each independent variable. Therefore, we take two rows worth of data to produce one data point. In M6, we have more data because each row is its own data point.
+There are fewer data points in M2 because we are looking at the change in each independent variable. Therefore, we take two rows worth of data to produce one data point. In the non-differenced model, we have more data because each row is its own data point.
 
-- What model do you think will generally have less biased estimates of the effect of out-relief on pauperism: *M5* or *M2*? Explain your reasoning.
-M5 will be more biased, since we cannot use a lot of negative data points when we log our independent and dependent variables to generate our estimates.
+# What model do you think will generally have less biased estimates of the effect of out-relief on pauperism: *M5* or *M2*? Explain your reasoning.
+Autocorrelation is certainly present in this data and M2 will do a better job of controlling for autocorrelation, but autocorrelation will only affect uncertainty, not bias. 
 
 
 ## Substantive Effects
@@ -351,10 +390,13 @@ For this use *M2*:
 #### When we talk about outliers, do we care only about outliers on y or x or care about both?
 #### Having an extreme x or extreme y doesn't necessarily mean the point is influential, it might not affect your slope at all (though it could affect betas)
 #### High leverage -- significant difference between the X of the point and the mean of X
-
-  - hat value (`hatvalues`)
 # How to interpret hatvalues? Greater than 2 or 3 on the standardized hat scores are said to be high
 # Think about why X values are only values that can affect slope
+
+  - hat value (`hatvalues`)
+```{r}
+
+```
   - standardized error (`rstandard`)
 
   - studentized error  (`rstudent`)
