@@ -85,16 +85,20 @@ In @Yule1899a, the reg
 4. What is the difference between *M3* and *M4*. What are the pros and cons of each parameterization?
 4. Conduct F-tests on the hypotheses:
   
-    1. All interactions in *M4* are 0
-    2. The coefficients on `outratiodiff` in *M4* are the same across years
-    3. The coefficients on `outratiodiff` in *M4* are the same across PLU Types
-    4. The coefficients on `outratiodiff` in *M4* are the same across PLU Types and years.
+  1. All interactions in *M4* are 0
+  2. The coefficients on `outratiodiff` in *M4* are the same across years
+  3. The coefficients on `outratiodiff` in *M4* are the same across PLU Types
+  4. The coefficients on `outratiodiff` in *M4* are the same across PLU Types and years.
+  
+  You can conduct F-tests with the function `anova(mod_unrestricted, mod_restricted)`.
 
 5. Calculate the predicted value and confidence interval for the PLU with the median value of `outratiodiff`, `popratiodiff`, and `oldratiodiff` 
   in each year and PLU Type for these models.
   Plot the predicted value and confidence interval of these as point-ranges.
 6. As previously, calculate the predicted value of the median PLU in each year and PLU Type. But instead of confidence intervals include the prediction interval. How do the confidence and prediction intervals differ? What are their definitions?
 7. Repeat the previous step but use a **prediction interval** instead of a confidence interval. What is the difference between the confidence and prediction intervals.
+
+
 
 ## Functional Forms
 
@@ -202,12 +206,13 @@ Calculate this statistic for *M2* and interpret it.
 
 ## Cross-Validation
 
-When using regression causal estimation, model specification and choice should largely be based on avoiding omitted variables. 
+When using regression for causal inference, model specification and choice should largely be based on avoiding omitted variables. 
 Another criteria for selecting models is to use their fit to the data.
 But a model's fit to data should not be assessed using only the in-sample data.
 That leads to overfitting---and the best model would always be to include an indicator variable for every observation
 Instead, a model's fit to data can be assessed by using its out-of-sample fit.
 One way to estimate the *expected* fit of a model to *new* data is cross-validation.
+
 
 
 
