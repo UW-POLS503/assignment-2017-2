@@ -1,8 +1,67 @@
 ---
 title: "Solutions to POLS 503 Assignment 2"
-author: "Jeffrey Arnold"
-date: "4/19/2017"
+author: "Hanjie Wang"
+date: "4/28/2017"
 output: html_document
 ---
 
-Fill in your solutions here
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library("tidyverse")
+library("modelr")
+library ("resamplr")
+
+devtools::install_github("jrnold/datums")
+library(datums)
+
+pauperism <-
+  left_join(datums::pauperism_plu, datums::pauperism_year,
+            by = "ID") %>%
+  mutate (year = as.character(year))
+```
+
+1. Present the regressions results in a regression table
+
+```{r}
+reg_M1<- lm(paupratiodiff~ outratiodiff + year + Type, data = pauperism)
+summary (reg_M1)
+
+reg_M2<- lm (paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type), data=pauperism)
+summary (reg_M2)
+
+reg_M3<- lm(-1  + paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type), data= pauperism)
+summary (reg_M3)
+
+reg_M4<- lm (paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type), data= pauperism)
+summary (reg_M4)
+```
+
+2. Interpret the coefficients for `outratiodiff` for each model.
+M1: Hold year and Type constant, one unit increase in outratiodiff is on average in associated with 0.2343 increase in pauprism ratio difference. 
+
+3. Write the equations for each or all models, and describe the model with a sentence or two. Try to be as concise as possible. Look at recent journal articles for examples of the wording and format.
+
+M1: $y=\beta1*outratiodiff +\beta2*year+ \beta3*Type +\epsilon$
+M1 seeks to uncover the relationship between XXX and XXX, when holding year and Type constant. 
+
+M2: 
+for interaction interpretation: is one coefficient different by type
+
+4. What is the difference between *M3* and *M4*. What are the pros and cons of each parameterization?
+
+M3 and M4 only changes the intercept, because the -1 included in the formula. So the intercept in M3 is 1 lower than in M4, while all the slopes don't change. 
+
+Advantage and Disadvantage: 
+[If converting units, coefficient will change, but the substantive relationship will not change] 
+Try to think about it with ratio
+Is it a good transformation? 
+
+5. Conduct F-tests on the hypotheses
+
+```{r}
+library(car)
+linearHypothesis(reg_M4, c("outratiodiff:year","outratiodiff:TypeMixed"))
+```
