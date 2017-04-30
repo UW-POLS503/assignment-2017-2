@@ -176,6 +176,8 @@ pg. 250)
 \begin{Highlighting}[]
 \KeywordTok{library}\NormalTok{(}\StringTok{"tidyverse"}\NormalTok{)}
 \KeywordTok{library}\NormalTok{(}\StringTok{"modelr"}\NormalTok{)}
+\CommentTok{# devtools::install_github("jrnold/resamplr")}
+\KeywordTok{library}\NormalTok{(}\StringTok{"resamplr"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -203,7 +205,8 @@ observation.
 \begin{Highlighting}[]
 \NormalTok{pauperism <-}
 \StringTok{  }\KeywordTok{left_join}\NormalTok{(datums}\OperatorTok{::}\NormalTok{pauperism_plu, datums}\OperatorTok{::}\NormalTok{pauperism_year,}
-            \DataTypeTok{by =} \StringTok{"ID"}\NormalTok{)}
+            \DataTypeTok{by =} \StringTok{"ID"}\NormalTok{) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{year =} \KeywordTok{as.character}\NormalTok{(year))}
 \end{Highlighting}
 \end{Shaded}
 
@@ -257,7 +260,7 @@ more tedious or error-prone.
 \subsection{Original Specification}\label{original-specification}
 
 Run regressions of \texttt{pauper} using the yearly level data with the
-following specifications. In Yule (1899), the reg
+following specifications. In Yule (1899), the regressions are
 
 \begin{itemize}
 \tightlist
@@ -271,7 +274,7 @@ following specifications. In Yule (1899), the reg
   \emph{M3:}
   \texttt{-1\ \ +\ paupratiodiff\ \textasciitilde{}\ (outratiodiff\ +\ popratiodiff\ +\ oldratiodiff)\ *\ (year\ +\ Type)}
 \item
-  \emph{M3:}
+  \emph{M4:}
   \texttt{paupratiodiff\ \textasciitilde{}\ (outratiodiff\ +\ popratiodiff\ +\ oldratiodiff)\ *\ (year\ +\ Type)}
 \end{itemize}
 
@@ -301,10 +304,20 @@ following specifications. In Yule (1899), the reg
 \item
   The coefficients on \texttt{outratiodiff} in \emph{M4} are the same
   across PLU Types and years.
+\end{enumerate}
+
+You can conduct F-tests with the function
+\texttt{anova(mod\_unrestricted,\ mod\_restricted)}.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{4}
+\tightlist
 \item
-  What is the predicted value of the median PLU in each year and PLU
-  Type for these models. Include confidence intervals. Plot these as
-  point-ranges with the estimate and confidence intervals.
+  Calculate the predicted value and confidence interval for the PLU with
+  the median value of \texttt{outratiodiff}, \texttt{popratiodiff}, and
+  \texttt{oldratiodiff} in each year and PLU Type for these models. Plot
+  the predicted value and confidence interval of these as point-ranges.
 \item
   As previously, calculate the predicted value of the median PLU in each
   year and PLU Type. But instead of confidence intervals include the
@@ -327,10 +340,9 @@ year and region terms and interactions) can be also written as \[
 \def\labelenumi{\arabic{enumi}.}
 \tightlist
 \item
-  Take the logarithm of each side, and simplify so that
-  \(\log(\mathtt{pauper2}_t/\mathtt{pauper2}_{t -1})\) is the outcome
-  and the predictors are all in the form
-  \(\log(x_t) - \log(x_{t - 1}) = \log(x_t / x_{t - 1})\).
+  Write a model that includes only the log differences
+  (\(\log(x_t) - \log(x_{t - 1})\)) with only the \texttt{pauper2},
+  \texttt{outratio}, \texttt{Popn2}, and \texttt{Popn65} variables.
 \item
   Estimate the model with logged difference predictors, Year, and month
   and interpret the coefficient on \(\log(outratio_t)\).
@@ -353,7 +365,7 @@ pauper2 ~ outratio + (Popn2 + Prop65) * (year + Type)
 \tightlist
 \item
   Interpret the coefficient on \texttt{outratio}. How is this different
-  than model \emph{M5}
+  than model \emph{M2}?
 \item
   What accounts for the different in sample sizes in \emph{M5} and
   \emph{M2}?
@@ -415,21 +427,17 @@ Coefficient}\label{influential-observations-for-a-coefficient}
 \def\labelenumi{\arabic{enumi}.}
 \item
   Run \emph{M2}, deleting each observation and saving the coefficient
-  for \texttt{outratiodirff}. This is a method called the jackknife. You
+  for \texttt{outratiodiff}. This is a method called the jackknife. You
   can use a for loop to do this, or you can use the function
   \texttt{jackknife} in the package
   \href{https://github.com/jrnold/resamplr}{resamplr}.
 
-  \begin{itemize}
+  \begin{enumerate}
+  \def\labelenumii{\arabic{enumii}.}
   \tightlist
   \item
     For which observations is there the largest change in the
     coefficient on \texttt{outratiodiff}?
-  \end{itemize}
-
-  \begin{enumerate}
-  \def\labelenumii{\arabic{enumii}.}
-  \tightlist
   \item
     Which observations have the largest effect on the estimate of
     \texttt{outratiodiff}?
@@ -491,33 +499,86 @@ Calculate this statistic for \emph{M2} and interpret it.
 
 \subsection{Heteroskedasticity}\label{heteroskedasticity}
 
+\subsubsection{Robust Standard Errors}\label{robust-standard-errors}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Run \emph{M2} and \emph{M3} with a heteroskedasticity consistent (HAC)
+  or robust standard error. How does this affect the standard errors on
+  \texttt{outratio} coefficients? Use the \textbf{sandwich} package to
+  add HAC standard errors (Zeileis 2004).
+\end{enumerate}
+
+\subsubsection{Multiple Regressions}\label{multiple-regressions}
+
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
 \item
-  Run \emph{M2} and \emph{M3} with a heteroskedasticity consistent
-  (HAC), also called robust, standard error. How does this affect the
-  standard errors on \texttt{outratio} coefficients? Use the
-  \textbf{sandwich} package to add HAC standard errors (Zeileis 2004).
-\item
-  Model \emph{M3} is almost equivalent to running separate regressions
-  on each combination of \texttt{Type} and \texttt{Year}.
+  Run the model with interactions for all years and types
 
-  \begin{enumerate}
-  \def\labelenumii{\arabic{enumii}.}
-  \tightlist
-  \item
-    Run a regression on each subset of combination of \texttt{Type} and
-    \texttt{Year}.
-  \item
-    How do the coefficients, standard errors, and regression standard
-    errors (\(\sigma\)) differ from those of \emph{M3}.
-  \item
-    Compare the robust standard errors in \emph{M3} to those in the
-    subset regressions. What is the relationship between
-    heteroskedasticity and difference between the single regression with
-    interactions (\emph{M3}) and the multiple regressions.
-  \end{enumerate}
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{lm}\NormalTok{(pauper2 }\OperatorTok{~}\StringTok{ }\NormalTok{(outratio }\OperatorTok{+}\StringTok{ }\NormalTok{Popn2 }\OperatorTok{+}\StringTok{ }\NormalTok{Prop65) }\OperatorTok{*}\StringTok{ }\NormalTok{year }\OperatorTok{*}\StringTok{ }\NormalTok{Type }\OperatorTok{-}\StringTok{ }\DecValTok{1}\NormalTok{, }\DataTypeTok{data =}\NormalTok{ pauperism)}
+\end{Highlighting}
+\end{Shaded}
+\item
+  For each subset of \texttt{year} and \texttt{type} run the regression
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{lm}\NormalTok{(pauper2 }\OperatorTok{~}\StringTok{ }\NormalTok{outratio }\OperatorTok{+}\StringTok{ }\NormalTok{Popn2 }\OperatorTok{+}\StringTok{ }\NormalTok{Prop65)}
+\end{Highlighting}
+\end{Shaded}
+\item
+  Compare the coefficients, standard errors, and regression standard
+  errors in these regresions.
 \end{enumerate}
+
+To run the multiple regressions, save models as a list column
+\texttt{mod}, then save the results of \texttt{glance} and \texttt{tidy}
+as list columns:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{all_interact <-}
+\StringTok{  }\KeywordTok{crossing}\NormalTok{(}\DataTypeTok{Type =}\NormalTok{ pauperism}\OperatorTok{$}\NormalTok{Type, }\DataTypeTok{year =} \KeywordTok{c}\NormalTok{(}\DecValTok{1881}\NormalTok{, }\DecValTok{1891}\NormalTok{)) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{mod =} \KeywordTok{map2}\NormalTok{(year, Type, }
+                    \ControlFlowTok{function}\NormalTok{(yr, ty) \{}
+                    \KeywordTok{lm}\NormalTok{(paupratiodiff }\OperatorTok{~}\StringTok{ }\NormalTok{outratiodiff }\OperatorTok{+}\StringTok{ }\NormalTok{popratiodiff }\OperatorTok{+}\StringTok{ }\NormalTok{oldratiodiff,}
+                       \DataTypeTok{data =} \KeywordTok{filter}\NormalTok{(pauperism,}
+\NormalTok{                                      year }\OperatorTok{==}\StringTok{ }\NormalTok{yr,}
+\NormalTok{                                      Type }\OperatorTok{==}\StringTok{ }\NormalTok{ty))}
+\NormalTok{                    \})) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{mod_glance =} \KeywordTok{map}\NormalTok{(mod, broom}\OperatorTok{::}\NormalTok{glance),}
+         \DataTypeTok{mod_tidy =} \KeywordTok{map}\NormalTok{(mod, broom}\OperatorTok{::}\NormalTok{tidy))}
+\end{Highlighting}
+\end{Shaded}
+
+Now extract parts of model. E.g. Standard errors of the regression:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{all_interact }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{sigma =} \KeywordTok{map_dbl}\NormalTok{(mod_glance, }\ControlFlowTok{function}\NormalTok{(x) x}\OperatorTok{$}\NormalTok{sigma)) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{select}\NormalTok{(year, Type, sigma)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 8 × 3
+##    year         Type     sigma
+##   <dbl>        <chr>     <dbl>
+## 1  1881 Metropolitan  9.886436
+## 2  1891 Metropolitan 24.790240
+## 3  1881        Mixed 16.437527
+## 4  1891        Mixed 17.403411
+## 5  1881        Rural 13.801753
+## 6  1891        Rural 17.078948
+## 7  1881        Urban 19.523919
+## 8  1891        Urban 25.557318
+\end{verbatim}
 
 \subsection{Weighted Regression}\label{weighted-regression}
 
@@ -536,20 +597,166 @@ Calculate this statistic for \emph{M2} and interpret it.
   Pischke (2014).
 \end{enumerate}
 
-\textbf{BELOW THIS STILL IN PROGRESS}
-
-\subsection{Average Marginal Effects}\label{average-marginal-effects}
-
 \subsection{Cross-Validation}\label{cross-validation}
 
-When using regression causal estimation, model specification and choice
-should largely be based on avoiding omitted variables. Another criteria
-for selecting models is to use their fit to the data. But a model's fit
-to data should not be assessed using only the in-sample data. That leads
-to overfitting---and the best model would always be to include an
-indicator variable for every observation Instead, a model's fit to data
-can be assessed by using its out-of-sample fit. One way to estimate the
-\emph{expected} fit of a model to \emph{new} data is cross-validation.
+When using regression for causal inference, model specification and
+choice should largely be based on avoiding omitted variables. Another
+criteria for selecting models is to use their fit to the data. But a
+model's fit to data should not be assessed using only the in-sample
+data. That leads to overfitting---and the best model would always be to
+include an indicator variable for every observation Instead, a model's
+fit to data can be assessed by using its out-of-sample fit. One way to
+estimate the \emph{expected} fit of a model to \emph{new} data is
+cross-validation.
+
+We want to compare the predictive performance of the following models
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mod_formulas <-}\StringTok{ }
+\StringTok{  }\KeywordTok{list}\NormalTok{(}
+    \DataTypeTok{m0 =}\NormalTok{ paupratiodiff }\OperatorTok{~}\StringTok{ }\DecValTok{1}\NormalTok{,}
+    \DataTypeTok{m1 =}\NormalTok{ paupratiodiff }\OperatorTok{~}\StringTok{ }\NormalTok{year }\OperatorTok{+}\StringTok{ }\NormalTok{Type,    }
+    \DataTypeTok{m2 =}\NormalTok{ paupratiodiff }\OperatorTok{~}\StringTok{ }\NormalTok{outratiodiff }\OperatorTok{+}\StringTok{ }\NormalTok{year }\OperatorTok{+}\StringTok{ }\NormalTok{Type,}
+    \DataTypeTok{m3 =}\NormalTok{ paupratiodiff }\OperatorTok{~}\StringTok{ }\NormalTok{outratiodiff }\OperatorTok{+}\StringTok{ }\NormalTok{(popratiodiff }\OperatorTok{+}\StringTok{ }\NormalTok{oldratiodiff) }\OperatorTok{*}\StringTok{ }\NormalTok{(year }\OperatorTok{+}\StringTok{ }\NormalTok{Type),}
+    \DataTypeTok{m4 =} \OperatorTok{-}\DecValTok{1}  \OperatorTok{+}\StringTok{ }\NormalTok{paupratiodiff }\OperatorTok{~}\StringTok{ }\NormalTok{(outratiodiff }\OperatorTok{+}\StringTok{ }\NormalTok{popratiodiff }\OperatorTok{+}\StringTok{ }\NormalTok{oldratiodiff) }\OperatorTok{*}\StringTok{ }\NormalTok{(year }\OperatorTok{+}\StringTok{ }\NormalTok{Type),}
+    \DataTypeTok{m5 =}\NormalTok{ paupratiodiff }\OperatorTok{~}\StringTok{ }\NormalTok{(outratiodiff }\OperatorTok{+}\StringTok{ }\NormalTok{popratiodiff }\OperatorTok{+}\StringTok{ }\NormalTok{oldratiodiff) }\OperatorTok{*}\StringTok{ }\NormalTok{year }\OperatorTok{*}\StringTok{ }\NormalTok{Type}
+\NormalTok{  )}
+\end{Highlighting}
+\end{Shaded}
+
+Let's split the data into 10 (train/test) folds for cross-validation,
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pauperism_nonmiss <-}\StringTok{ }
+\StringTok{  }\NormalTok{pauperism }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{filter}\NormalTok{(year }\OperatorTok{%in%}\StringTok{ }\KeywordTok{c}\NormalTok{(}\DecValTok{1881}\NormalTok{, }\DecValTok{1891}\NormalTok{)) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{select}\NormalTok{(paupratiodiff, outratiodiff, popratiodiff, oldratiodiff, year, Type, Region, ID) }\OperatorTok{%>%}
+\StringTok{  }\NormalTok{tidyr}\OperatorTok{::}\KeywordTok{drop_na}\NormalTok{()}
+\NormalTok{pauperism_10folds <-}
+\StringTok{  }\NormalTok{pauperism_nonmiss }\OperatorTok{%>%}
+\StringTok{  }\NormalTok{resamplr}\OperatorTok{::}\KeywordTok{crossv_kfold}\NormalTok{(}\DecValTok{10}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+For each model formula \texttt{f}, training data set \texttt{train}, and
+test data set, \texttt{test}, run the model specified by \texttt{f} on
+\texttt{train}, and predict new observations in \texttt{test}, and
+calculate the RMSE from the residuals
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mod_rmse_fold <-}\StringTok{ }\ControlFlowTok{function}\NormalTok{(f, train, test) \{}
+\NormalTok{  fit <-}\StringTok{ }\KeywordTok{lm}\NormalTok{(f, }\DataTypeTok{data =} \KeywordTok{as.data.frame}\NormalTok{(train))}
+\NormalTok{  test_data <-}\StringTok{ }\KeywordTok{as.data.frame}\NormalTok{(test)}
+\NormalTok{  err <-}\StringTok{ }\NormalTok{test_data}\OperatorTok{$}\NormalTok{paupratiodiff }\OperatorTok{-}\StringTok{ }\KeywordTok{predict}\NormalTok{(fit, }\DataTypeTok{newdata =}\NormalTok{ test_data)}
+  \KeywordTok{sqrt}\NormalTok{(}\KeywordTok{mean}\NormalTok{(err }\OperatorTok{^}\StringTok{ }\DecValTok{2}\NormalTok{))}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+E.g. for one fold and formula,
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{mod_rmse_fold}\NormalTok{(mod_formulas[[}\DecValTok{1}\NormalTok{]], pauperism_10folds}\OperatorTok{$}\NormalTok{train[[}\DecValTok{1}\NormalTok{]],}
+\NormalTok{              pauperism_10folds}\OperatorTok{$}\NormalTok{test[[}\DecValTok{1}\NormalTok{]])}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 19.5354
+\end{verbatim}
+
+Now write a function that will calculate the average RMSE across folds
+for a formula and a cross-validation data frame with \texttt{train} and
+\texttt{test} list-columns:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mod_rmse <-}\StringTok{ }\ControlFlowTok{function}\NormalTok{(f, data) \{}
+  \KeywordTok{map2_dbl}\NormalTok{(data}\OperatorTok{$}\NormalTok{train, data}\OperatorTok{$}\NormalTok{test, }
+           \ControlFlowTok{function}\NormalTok{(train, test) \{}
+             \KeywordTok{mod_rmse_fold}\NormalTok{(f, train, test)}
+\NormalTok{           \}) }\OperatorTok{%>%}
+\StringTok{    }\KeywordTok{mean}\NormalTok{()}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{mod_rmse}\NormalTok{(mod_formulas[[}\DecValTok{1}\NormalTok{]], pauperism_10folds)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 24.05803
+\end{verbatim}
+
+Finall, we want to run \texttt{mod\_rmse} for each formula in
+\texttt{mod\_formulas}. It will be easiest to store this in a data
+frame:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{cv_results <-}\StringTok{ }\KeywordTok{tibble}\NormalTok{(}
+  \DataTypeTok{model_formula =}\NormalTok{ mod_formulas,}
+  \DataTypeTok{.id =} \KeywordTok{names}\NormalTok{(mod_formulas),}
+  \CommentTok{# Formula as a string}
+  \DataTypeTok{.name =} \KeywordTok{map}\NormalTok{(model_formula,}
+              \ControlFlowTok{function}\NormalTok{(x) }\KeywordTok{gsub}\NormalTok{(}\StringTok{" +"}\NormalTok{, }\StringTok{" "}\NormalTok{, }\KeywordTok{paste0}\NormalTok{(}\KeywordTok{deparse}\NormalTok{(x), }\DataTypeTok{collapse =} \StringTok{""}\NormalTok{)))}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Use \texttt{map} to run \texttt{mod\_rmse} for each model and save it as
+a list frame in the data frame,
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{cv_results <-}
+\StringTok{  }\KeywordTok{mutate}\NormalTok{(cv_results,}
+         \DataTypeTok{cv10_rmse =} \KeywordTok{map}\NormalTok{(model_formula, mod_rmse, }\DataTypeTok{data =}\NormalTok{ pauperism_10folds))}
+\end{Highlighting}
+\end{Shaded}
+
+In the case of linear regression, the MSE of the Leave-one-out
+(\(n\)-fold) cross-validation can be analytically calculated without
+having to run \(n\) regressions.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{loocv <-}\StringTok{ }\ControlFlowTok{function}\NormalTok{(x) \{}
+  \KeywordTok{mean}\NormalTok{((}\KeywordTok{residuals}\NormalTok{(x) }\OperatorTok{/}\StringTok{ }\NormalTok{(}\DecValTok{1} \OperatorTok{-}\StringTok{ }\KeywordTok{hatvalues}\NormalTok{(x))) }\OperatorTok{^}\StringTok{ }\DecValTok{2}\NormalTok{)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+We
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{cv_results <-}\StringTok{ }
+\StringTok{  }\KeywordTok{mutate}\NormalTok{(cv_results, }
+         \DataTypeTok{rmse_loo =} \KeywordTok{map}\NormalTok{(mod_formulas, }\ControlFlowTok{function}\NormalTok{(f) }\KeywordTok{sqrt}\NormalTok{(}\KeywordTok{loocv}\NormalTok{(}\KeywordTok{lm}\NormalTok{(f, }\DataTypeTok{data =}\NormalTok{ pauperism_nonmiss)))))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  In the 10-fold cross validation, which model has the best out of
+  sample prediction?
+\item
+  Using the LOO-CV cross-validation, which model has the best
+\item
+  Does the prediction metric (RMSE) and prediction task---predicting
+  individual PLUs from other PLUs---make sense? Can you think of others
+  that you would prefer?
+\end{enumerate}
 
 \subsection{Bootstrapping}\label{bootstrapping}
 
@@ -593,6 +800,118 @@ bootstrapped statistics.
     quantiles of \(\theta^*\) for its upper and lower bounds.
   \end{itemize}
 \end{itemize}
+
+Original model
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mod_formula <-}\StringTok{ }\NormalTok{paupratiodiff }\OperatorTok{~}\StringTok{ }\NormalTok{outratiodiff }\OperatorTok{+}\StringTok{ }\NormalTok{(popratiodiff }\OperatorTok{+}\StringTok{ }\NormalTok{oldratiodiff) }\OperatorTok{*}\StringTok{ }\NormalTok{year }\OperatorTok{*}\StringTok{ }\NormalTok{Type}
+\NormalTok{mod_orig <-}\StringTok{ }\KeywordTok{lm}\NormalTok{(mod_formula, }\DataTypeTok{data =}\NormalTok{ pauperism_nonmiss)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{bs_coef_se <-}
+\StringTok{  }\NormalTok{resamplr}\OperatorTok{::}\KeywordTok{bootstrap}\NormalTok{(pauperism_nonmiss, }\DecValTok{1024}\NormalTok{) }\OperatorTok{%>%}
+\StringTok{  }\CommentTok{# extract the strap column}
+\StringTok{  `}\DataTypeTok{[[}\StringTok{`}\NormalTok{(}\StringTok{"sample"}\NormalTok{) }\OperatorTok{%>%}
+\StringTok{  }\CommentTok{# run }
+\StringTok{  }\KeywordTok{map_df}\NormalTok{(}\ControlFlowTok{function}\NormalTok{(dat) \{}
+    \KeywordTok{lm}\NormalTok{(mod_formula, }\DataTypeTok{data =}\NormalTok{ dat) }\OperatorTok{%>%}
+\StringTok{    }\NormalTok{broom}\OperatorTok{::}\KeywordTok{tidy}\NormalTok{() }\OperatorTok{%>%}
+\StringTok{    }\KeywordTok{select}\NormalTok{(term, estimate)}
+\NormalTok{  \}) }\OperatorTok{%>%}
+\StringTok{  }\CommentTok{# calculate 2.5%, 97.5% and sd of estimates}
+\StringTok{  }\KeywordTok{group_by}\NormalTok{(term) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{summarise}\NormalTok{(}
+    \DataTypeTok{std.error_bs =} \KeywordTok{sd}\NormalTok{(estimate),}
+    \DataTypeTok{conf.low_bsq =} \KeywordTok{quantile}\NormalTok{(estimate, }\FloatTok{0.025}\NormalTok{),}
+    \DataTypeTok{conf.low_bsq =} \KeywordTok{quantile}\NormalTok{(estimate, }\FloatTok{0.975}\NormalTok{)}
+\NormalTok{  )}
+\end{Highlighting}
+\end{Shaded}
+
+Now compare the std.error of the original and the bootstrap for
+\texttt{outratiodiff}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{broom}\OperatorTok{::}\KeywordTok{tidy}\NormalTok{(mod_orig, }\DataTypeTok{conf.int =} \OtherTok{TRUE}\NormalTok{) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{select}\NormalTok{(term, estimate, std.error) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{filter}\NormalTok{(term }\OperatorTok{==}\StringTok{ "outratiodiff"}\NormalTok{) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{left_join}\NormalTok{(bs_coef_se, }\DataTypeTok{by =} \StringTok{"term"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##           term  estimate  std.error std.error_bs conf.low_bsq
+## 1 outratiodiff 0.2274375 0.01433042    0.0188327    0.2685325
+\end{verbatim}
+
+The bootstrap standard error is slightly higher. It is similar to the
+standard error generated using the heteroskedasticity consistent
+standard error.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{sqrt}\NormalTok{(sandwich}\OperatorTok{::}\KeywordTok{vcovHC}\NormalTok{(mod_orig)[}\StringTok{"outratiodiff"}\NormalTok{, }\StringTok{"outratiodiff"}\NormalTok{])}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.01985823
+\end{verbatim}
+
+It is likely that there is correlation between the error terms of
+observations. At the very least, each PLU is included twice; these
+observations are likely correlated, so we are effectively overstating
+the sample size of our data. One way to account for that is to resample
+``PLUs'', not PLU-years. This cluster-bootstrap will resample each PLU
+(and all its observations), rather than resampling the observations
+themselves.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pauperism_nonmiss }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{group_by}\NormalTok{(ID) }\OperatorTok{%>%}
+\StringTok{  }\NormalTok{resamplr}\OperatorTok{::}\KeywordTok{bootstrap}\NormalTok{(}\DecValTok{1024}\NormalTok{) }\OperatorTok{%>%}
+\StringTok{  }\CommentTok{# extract the strap column}
+\StringTok{  `}\DataTypeTok{[[}\StringTok{`}\NormalTok{(}\StringTok{"sample"}\NormalTok{) }\OperatorTok{%>%}
+\StringTok{  }\CommentTok{# run }
+\StringTok{  }\KeywordTok{map_df}\NormalTok{(}\ControlFlowTok{function}\NormalTok{(dat) \{}
+    \KeywordTok{lm}\NormalTok{(mod_formula, }\DataTypeTok{data =}\NormalTok{ dat) }\OperatorTok{%>%}
+\StringTok{    }\NormalTok{broom}\OperatorTok{::}\KeywordTok{tidy}\NormalTok{() }\OperatorTok{%>%}
+\StringTok{    }\KeywordTok{select}\NormalTok{(term, estimate)}
+\NormalTok{  \}) }\OperatorTok{%>%}
+\StringTok{  }\CommentTok{# calculate 2.5%, 97.5% and sd of estimates}
+\StringTok{  }\KeywordTok{group_by}\NormalTok{(term) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{summarise}\NormalTok{(}
+    \DataTypeTok{std.error_bs =} \KeywordTok{sd}\NormalTok{(estimate),}
+    \DataTypeTok{conf.low_bsq =} \KeywordTok{quantile}\NormalTok{(estimate, }\FloatTok{0.025}\NormalTok{),}
+    \DataTypeTok{conf.low_bsq =} \KeywordTok{quantile}\NormalTok{(estimate, }\FloatTok{0.975}\NormalTok{)}
+\NormalTok{  ) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{filter}\NormalTok{(term }\OperatorTok{==}\StringTok{ "outratiodiff"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 1 × 3
+##           term std.error_bs conf.low_bsq
+##          <chr>        <dbl>        <dbl>
+## 1 outratiodiff   0.01808499    0.2654708
+\end{verbatim}
+
+However, this yields a standard error not much different than the Robust
+standard error.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Try bootstrapping ``Region'' and ``BoothGroup''. Do either of these
+  make much difference in the standard errors.
+\end{enumerate}
 
 \subsection*{References}\label{references}
 \addcontentsline{toc}{subsection}{References}
