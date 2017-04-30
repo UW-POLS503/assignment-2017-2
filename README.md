@@ -43,6 +43,8 @@ Setup
 
     library("tidyverse")
     library("modelr")
+    # devtools::install_github("jrnold/resamplr")
+    library("resamplr")
 
 While only a subset of the original data of Yule (1899) was printed in
 the article itself, Plewis (2015) reconstructed the orginal data and
@@ -61,7 +63,8 @@ data with the PLU-year as the unit of observation.
 
     pauperism <-
       left_join(datums::pauperism_plu, datums::pauperism_year,
-                by = "ID")
+                by = "ID") %>%
+      mutate(year = as.character(year))
 
 The data consist of 599 PLUs and the years: 1871, 1881, 1891 (years in
 which there was a UK census).
@@ -101,14 +104,14 @@ Original Specification
 ----------------------
 
 Run regressions of `pauper` using the yearly level data with the
-following specifications. In Yule (1899), the reg
+following specifications. In Yule (1899), the regressions are
 
 -   *M1:* `paupratiodiff ~ outratiodiff + year + Type`
 -   *M2:*
     `paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type)`
 -   *M3:*
     `-1  + paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type)`
--   *M3:*
+-   *M4:*
     `paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type)`
 
 1.  Present the regressions results in a regression table
@@ -127,10 +130,14 @@ following specifications. In Yule (1899), the reg
 9.  The coefficients on `outratiodiff` in *M4* are the same across PLU
     Types and years.
 
-10. What is the predicted value of the median PLU in each year and PLU
-    Type for these models. Include confidence intervals. Plot these as
-    point-ranges with the estimate and confidence intervals.
-11. As previously, calculate the predicted value of the median PLU in
+You can conduct F-tests with the function
+`anova(mod_unrestricted, mod_restricted)`.
+
+1.  Calculate the predicted value and confidence interval for the PLU
+    with the median value of `outratiodiff`, `popratiodiff`, and
+    `oldratiodiff` in each year and PLU Type for these models. Plot the
+    predicted value and confidence interval of these as point-ranges.
+2.  As previously, calculate the predicted value of the median PLU in
     each year and PLU Type. But instead of confidence intervals include
     the prediction interval. How do the confidence and prediction
     intervals differ? What are their definitions?
@@ -148,10 +155,9 @@ $$
 \\end{aligned}
 $$
 
-1.  Take the logarithm of each side, and simplify so that
-    log(`p``a``u``p``e``r``2`<sub>*t*</sub>/`p``a``u``p``e``r``2`<sub>*t* − 1</sub>)
-    is the outcome and the predictors are all in the form
-    log(*x*<sub>*t*</sub>)−log(*x*<sub>*t* − 1</sub>)=log(*x*<sub>*t*</sub>/*x*<sub>*t* − 1</sub>).
+1.  Write a model that includes only the log differences
+    (log(*x*<sub>*t*</sub>)−log(*x*<sub>*t* − 1</sub>)) with only the
+    `pauper2`, `outratio`, `Popn2`, and `Popn65` variables.
 2.  Estimate the model with logged difference predictors, Year, and
     month and interpret the coefficient on
     log(*o**u**t**r**a**t**i**o*<sub>*t*</sub>).
@@ -168,7 +174,7 @@ Suppose you estimate the model (*M5*) without differencing,
     pauper2 ~ outratio + (Popn2 + Prop65) * (year + Type)
 
 -   Interpret the coefficient on `outratio`. How is this different than
-    model *M5*
+    model *M2*?
 -   What accounts for the different in sample sizes in *M5* and *M2*?
 -   What model do you think will generally have less biased estimates of
     the effect of out-relief on pauperism: *M5* or *M2*? Explain your
@@ -204,19 +210,18 @@ Influential Observations for a Coefficient
 ------------------------------------------
 
 1.  Run *M2*, deleting each observation and saving the coefficient for
-    `outratiodirff`. This is a method called the jackknife. You can use
-    a for loop to do this, or you can use the function `jackknife` in
-    the package [resamplr](https://github.com/jrnold/resamplr).
+    `outratiodiff`. This is a method called the jackknife. You can use a
+    for loop to do this, or you can use the function `jackknife` in the
+    package [resamplr](https://github.com/jrnold/resamplr).
 
-    -   For which observations is there the largest change in the
+    1.  For which observations is there the largest change in the
         coefficient on `outratiodiff`?
-
-    1.  Which observations have the largest effect on the estimate of
+    2.  Which observations have the largest effect on the estimate of
         `outratiodiff`?
-    2.  How do these observations compare with those that had the
+    3.  How do these observations compare with those that had the
         largest effect on the overall regression as measured with Cook's
         distance?
-    3.  Compare the results of the jackknife to the `dfbeta` statistic
+    4.  Compare the results of the jackknife to the `dfbeta` statistic
         for `outratiodiff`
 
 2.  Aronow and Samii (2015) note that the influence of observations in a
@@ -257,21 +262,58 @@ Calculate this statistic for *M2* and interpret it.
 Heteroskedasticity
 ------------------
 
-1.  Run *M2* and *M3* with a heteroskedasticity consistent (HAC), also
-    called robust, standard error. How does this affect the standard
-    errors on `outratio` coefficients? Use the **sandwich** package to
-    add HAC standard errors (Zeileis 2004).
-2.  Model *M3* is almost equivalent to running separate regressions on
-    each combination of `Type` and `Year`.
+### Robust Standard Errors
 
-    1.  Run a regression on each subset of combination of `Type` and
-        `Year`.
-    2.  How do the coefficients, standard errors, and regression
-        standard errors (*σ*) differ from those of *M3*.
-    3.  Compare the robust standard errors in *M3* to those in the
-        subset regressions. What is the relationship between
-        heteroskedasticity and difference between the single regression
-        with interactions (*M3*) and the multiple regressions.
+1.  Run *M2* and *M3* with a heteroskedasticity consistent (HAC) or
+    robust standard error. How does this affect the standard errors on
+    `outratio` coefficients? Use the **sandwich** package to add HAC
+    standard errors (Zeileis 2004).
+
+### Multiple Regressions
+
+1.  Run the model with interactions for all years and types
+
+        lm(pauper2 ~ (outratio + Popn2 + Prop65) * year * Type - 1, data = pauperism)
+
+2.  For each subset of `year` and `type` run the regression
+
+        lm(pauper2 ~ outratio + Popn2 + Prop65)
+
+3.  Compare the coefficients, standard errors, and regression standard
+    errors in these regresions.
+
+To run the multiple regressions, save models as a list column `mod`,
+then save the results of `glance` and `tidy` as list columns:
+
+    all_interact <-
+      crossing(Type = pauperism$Type, year = c(1881, 1891)) %>%
+      mutate(mod = map2(year, Type, 
+                        function(yr, ty) {
+                        lm(paupratiodiff ~ outratiodiff + popratiodiff + oldratiodiff,
+                           data = filter(pauperism,
+                                          year == yr,
+                                          Type == ty))
+                        })) %>%
+      mutate(mod_glance = map(mod, broom::glance),
+             mod_tidy = map(mod, broom::tidy))
+
+Now extract parts of model. E.g. Standard errors of the regression:
+
+    all_interact %>%
+      mutate(sigma = map_dbl(mod_glance, function(x) x$sigma)) %>%
+      select(year, Type, sigma)
+
+    ## # A tibble: 8 × 3
+    ##    year         Type     sigma
+    ##   <dbl>        <chr>     <dbl>
+    ## 1  1881 Metropolitan  9.886436
+    ## 2  1891 Metropolitan 24.790240
+    ## 3  1881        Mixed 16.437527
+    ## 4  1891        Mixed 17.403411
+    ## 5  1881        Rural 13.801753
+    ## 6  1891        Rural 17.078948
+    ## 7  1881        Urban 19.523919
+    ## 8  1891        Urban 25.557318
 
 Weighted Regression
 -------------------
@@ -284,22 +326,114 @@ Weighted Regression
     discussion in Solon, Haider, and Wooldridge (2013) and Angrist and
     Pischke (2014).
 
-**BELOW THIS STILL IN PROGRESS**
-
-Average Marginal Effects
-------------------------
-
 Cross-Validation
 ----------------
 
-When using regression causal estimation, model specification and choice
-should largely be based on avoiding omitted variables. Another criteria
-for selecting models is to use their fit to the data. But a model's fit
-to data should not be assessed using only the in-sample data. That leads
-to overfitting---and the best model would always be to include an
-indicator variable for every observation Instead, a model's fit to data
-can be assessed by using its out-of-sample fit. One way to estimate the
-*expected* fit of a model to *new* data is cross-validation.
+When using regression for causal inference, model specification and
+choice should largely be based on avoiding omitted variables. Another
+criteria for selecting models is to use their fit to the data. But a
+model's fit to data should not be assessed using only the in-sample
+data. That leads to overfitting---and the best model would always be to
+include an indicator variable for every observation Instead, a model's
+fit to data can be assessed by using its out-of-sample fit. One way to
+estimate the *expected* fit of a model to *new* data is
+cross-validation.
+
+We want to compare the predictive performance of the following models
+
+    mod_formulas <- 
+      list(
+        m0 = paupratiodiff ~ 1,
+        m1 = paupratiodiff ~ year + Type,    
+        m2 = paupratiodiff ~ outratiodiff + year + Type,
+        m3 = paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type),
+        m4 = -1  + paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type),
+        m5 = paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * year * Type
+      )
+
+Let's split the data into 10 (train/test) folds for cross-validation,
+
+    pauperism_nonmiss <- 
+      pauperism %>%
+      filter(year %in% c(1881, 1891)) %>%
+      select(paupratiodiff, outratiodiff, popratiodiff, oldratiodiff, year, Type, Region, ID) %>%
+      tidyr::drop_na()
+    pauperism_10folds <-
+      pauperism_nonmiss %>%
+      resamplr::crossv_kfold(10)
+
+For each model formula `f`, training data set `train`, and test data
+set, `test`, run the model specified by `f` on `train`, and predict new
+observations in `test`, and calculate the RMSE from the residuals
+
+    mod_rmse_fold <- function(f, train, test) {
+      fit <- lm(f, data = as.data.frame(train))
+      test_data <- as.data.frame(test)
+      err <- test_data$paupratiodiff - predict(fit, newdata = test_data)
+      sqrt(mean(err ^ 2))
+    }
+
+E.g. for one fold and formula,
+
+    mod_rmse_fold(mod_formulas[[1]], pauperism_10folds$train[[1]],
+                  pauperism_10folds$test[[1]])
+
+    ## [1] 23.22397
+
+Now write a function that will calculate the average RMSE across folds
+for a formula and a cross-validation data frame with `train` and `test`
+list-columns:
+
+    mod_rmse <- function(f, data) {
+      map2_dbl(data$train, data$test, 
+               function(train, test) {
+                 mod_rmse_fold(f, train, test)
+               }) %>%
+        mean()
+    }
+
+    mod_rmse(mod_formulas[[1]], pauperism_10folds)
+
+    ## [1] 24.27112
+
+Finall, we want to run `mod_rmse` for each formula in `mod_formulas`. It
+will be easiest to store this in a data frame:
+
+    cv_results <- tibble(
+      model_formula = mod_formulas,
+      .id = names(mod_formulas),
+      # Formula as a string
+      .name = map(model_formula,
+                  function(x) gsub(" +", " ", paste0(deparse(x), collapse = "")))
+    )
+
+Use `map` to run `mod_rmse` for each model and save it as a list frame
+in the data frame,
+
+    cv_results <-
+      mutate(cv_results,
+             cv10_rmse = map(model_formula, mod_rmse, data = pauperism_10folds))
+
+In the case of linear regression, the MSE of the Leave-one-out
+(*n*-fold) cross-validation can be analytically calculated without
+having to run *n* regressions.
+
+    loocv <- function(x) {
+      mean((residuals(x) / (1 - hatvalues(x))) ^ 2)
+    }
+
+We
+
+    cv_results <- 
+      mutate(cv_results, 
+             rmse_loo = map(mod_formulas, function(f) sqrt(loocv(lm(f, data = pauperism_nonmiss)))))
+
+1.  In the 10-fold cross validation, which model has the best out of
+    sample prediction?
+2.  Using the LOO-CV cross-validation, which model has the best
+3.  Does the prediction metric (RMSE) and prediction task---predicting
+    individual PLUs from other PLUs---make sense? Can you think of
+    others that you would prefer?
 
 Bootstrapping
 -------------
@@ -331,6 +465,87 @@ be the set of bootstrapped statistics.
         $\\hat\\theta \\pm t\_{\\alpha/2,df} \\cdot \\sd(\\theta^\*)$
     -   quantiles: A 95% confidence interval uses the 2.5% and 97.5%
         quantiles of *θ*<sup>\*</sup> for its upper and lower bounds.
+
+Original model
+
+    mod_formula <- paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * year * Type
+    mod_orig <- lm(mod_formula, data = pauperism_nonmiss)
+
+    bs_coef_se <-
+      resamplr::bootstrap(pauperism_nonmiss, 1024) %>%
+      # extract the strap column
+      `[[`("sample") %>%
+      # run 
+      map_df(function(dat) {
+        lm(mod_formula, data = dat) %>%
+        broom::tidy() %>%
+        select(term, estimate)
+      }) %>%
+      # calculate 2.5%, 97.5% and sd of estimates
+      group_by(term) %>%
+      summarise(
+        std.error_bs = sd(estimate),
+        conf.low_bsq = quantile(estimate, 0.025),
+        conf.low_bsq = quantile(estimate, 0.975)
+      )
+
+Now compare the std.error of the original and the bootstrap for
+`outratiodiff`
+
+    broom::tidy(mod_orig, conf.int = TRUE) %>%
+      select(term, estimate, std.error) %>%
+      filter(term == "outratiodiff") %>%
+      left_join(bs_coef_se, by = "term")
+
+    ##           term  estimate  std.error std.error_bs conf.low_bsq
+    ## 1 outratiodiff 0.2274375 0.01433042   0.01934653    0.2702265
+
+The bootstrap standard error is slightly higher. It is similar to the
+standard error generated using the heteroskedasticity consistent
+standard error.
+
+    sqrt(sandwich::vcovHC(mod_orig)["outratiodiff", "outratiodiff"])
+
+    ## [1] 0.01985823
+
+It is likely that there is correlation between the error terms of
+observations. At the very least, each PLU is included twice; these
+observations are likely correlated, so we are effectively overstating
+the sample size of our data. One way to account for that is to resample
+"PLUs", not PLU-years. This cluster-bootstrap will resample each PLU
+(and all its observations), rather than resampling the observations
+themselves.
+
+    pauperism_nonmiss %>%
+      group_by(ID) %>%
+      resamplr::bootstrap(1024) %>%
+      # extract the strap column
+      `[[`("sample") %>%
+      # run 
+      map_df(function(dat) {
+        lm(mod_formula, data = dat) %>%
+        broom::tidy() %>%
+        select(term, estimate)
+      }) %>%
+      # calculate 2.5%, 97.5% and sd of estimates
+      group_by(term) %>%
+      summarise(
+        std.error_bs = sd(estimate),
+        conf.low_bsq = quantile(estimate, 0.025),
+        conf.low_bsq = quantile(estimate, 0.975)
+      ) %>%
+      filter(term == "outratiodiff")
+
+    ## # A tibble: 1 × 3
+    ##           term std.error_bs conf.low_bsq
+    ##          <chr>        <dbl>        <dbl>
+    ## 1 outratiodiff   0.01831933    0.2681513
+
+However, this yields a standard error not much different than the Robust
+standard error.
+
+1.  Try bootstrapping "Region" and "BoothGroup". Do either of these make
+    much difference in the standard errors.
 
 References
 ----------

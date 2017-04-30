@@ -136,14 +136,17 @@ $$
 <div id="setup" class="section level1">
 <h1>Setup</h1>
 <pre class="r"><code>library(&quot;tidyverse&quot;)
-library(&quot;modelr&quot;)</code></pre>
+library(&quot;modelr&quot;)
+# devtools::install_github(&quot;jrnold/resamplr&quot;)
+library(&quot;resamplr&quot;)</code></pre>
 <p>While only a subset of the original data of <span class="citation">Yule (1899)</span> was printed in the article itself, <span class="citation">Plewis (2015)</span> reconstructed the orginal data and <span class="citation">Plewis (2017)</span> replicated the original paper. This data is included in the package <strong>datums</strong>. This package is not on CRAN, but can be downloaded from github. <strong>IMPORTANT</strong> install the latest version of <strong>datums</strong> since a few fixes were recently made to the <code>pauperism</code> dataset.</p>
 <pre class="r"><code># devtools::install_github(&quot;jrnold/datums&quot;)
 library(&quot;datums&quot;)</code></pre>
 <p>The data for <span class="citation">Yule (1899)</span> is split into two data frames: <code>pauperism_plu</code> contains data on the Poor Law Unions (PLU), and <code>pauperism_year</code>, panel data with the PLU-year as the unit of observation.</p>
 <pre class="r"><code>pauperism &lt;-
   left_join(datums::pauperism_plu, datums::pauperism_year,
-            by = &quot;ID&quot;)</code></pre>
+            by = &quot;ID&quot;) %&gt;%
+  mutate(year = as.character(year))</code></pre>
 <p>The data consist of 599 PLUs and the years: 1871, 1881, 1891 (years in which there was a UK census).</p>
 <p><span class="citation">Yule (1899)</span> is explcitly using regression for causal inference. The outcome variable of interest is:</p>
 <ul>
@@ -162,12 +165,12 @@ library(&quot;datums&quot;)</code></pre>
 <p>Instead of taking differences or percentages, Yule worked with “percent ratio differences”, <span class="math inline">\(100 \times \frac{x_{t}}{x_{t-1}}\)</span>, because he did not want to work with negative signs, presumably a concern at the because he was doing arithmetic by hand and this would make calculations more tedious or error-prone.</p>
 <div id="original-specification" class="section level2">
 <h2>Original Specification</h2>
-<p>Run regressions of <code>pauper</code> using the yearly level data with the following specifications. In <span class="citation">Yule (1899)</span>, the reg</p>
+<p>Run regressions of <code>pauper</code> using the yearly level data with the following specifications. In <span class="citation">Yule (1899)</span>, the regressions are</p>
 <ul>
 <li><em>M1:</em> <code>paupratiodiff ~ outratiodiff + year + Type</code></li>
 <li><em>M2:</em> <code>paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type)</code></li>
 <li><em>M3:</em> <code>-1  + paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type)</code></li>
-<li><em>M3:</em> <code>paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type)</code></li>
+<li><em>M4:</em> <code>paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type)</code></li>
 </ul>
 <ol style="list-style-type: decimal">
 <li>Present the regressions results in a regression table</li>
@@ -179,8 +182,11 @@ library(&quot;datums&quot;)</code></pre>
 <li>The coefficients on <code>outratiodiff</code> in <em>M4</em> are the same across years</li>
 <li>The coefficients on <code>outratiodiff</code> in <em>M4</em> are the same across PLU Types</li>
 <li><p>The coefficients on <code>outratiodiff</code> in <em>M4</em> are the same across PLU Types and years.</p></li>
-<li>What is the predicted value of the median PLU in each year and PLU Type for these models. Include confidence intervals. Plot these as point-ranges with the estimate and confidence intervals.</li>
-<li><p>As previously, calculate the predicted value of the median PLU in each year and PLU Type. But instead of confidence intervals include the prediction interval. How do the confidence and prediction intervals differ? What are their definitions?</p></li>
+</ol>
+<p>You can conduct F-tests with the function <code>anova(mod_unrestricted, mod_restricted)</code>.</p>
+<ol start="5" style="list-style-type: decimal">
+<li>Calculate the predicted value and confidence interval for the PLU with the median value of <code>outratiodiff</code>, <code>popratiodiff</code>, and <code>oldratiodiff</code> in each year and PLU Type for these models. Plot the predicted value and confidence interval of these as point-ranges.</li>
+<li>As previously, calculate the predicted value of the median PLU in each year and PLU Type. But instead of confidence intervals include the prediction interval. How do the confidence and prediction intervals differ? What are their definitions?</li>
 </ol>
 </div>
 <div id="functional-forms" class="section level2">
@@ -193,7 +199,7 @@ library(&quot;datums&quot;)</code></pre>
 \end{aligned}
 \]</span></p>
 <ol style="list-style-type: decimal">
-<li>Take the logarithm of each side, and simplify so that <span class="math inline">\(\log(\mathtt{pauper2}_t/\mathtt{pauper2}_{t -1})\)</span> is the outcome and the predictors are all in the form <span class="math inline">\(\log(x_t) - \log(x_{t - 1}) = \log(x_t / x_{t - 1})\)</span>.</li>
+<li>Write a model that includes only the log differences (<span class="math inline">\(\log(x_t) - \log(x_{t - 1})\)</span>) with only the <code>pauper2</code>, <code>outratio</code>, <code>Popn2</code>, and <code>Popn65</code> variables.</li>
 <li>Estimate the model with logged difference predictors, Year, and month and interpret the coefficient on <span class="math inline">\(\log(outratio_t)\)</span>.</li>
 <li>What are the pros and cons of this parameterization of the model relative to the one in <span class="citation">Yule (1899)</span>? Focus on interpretation and the desired goal of the inference rather than the formal tests of the regression. Can you think of other, better functional forms?</li>
 </ol>
@@ -203,7 +209,7 @@ library(&quot;datums&quot;)</code></pre>
 <p>Suppose you estimate the model (<em>M5</em>) without differencing,</p>
 <pre><code>pauper2 ~ outratio + (Popn2 + Prop65) * (year + Type)</code></pre>
 <ul>
-<li>Interpret the coefficient on <code>outratio</code>. How is this different than model <em>M5</em></li>
+<li>Interpret the coefficient on <code>outratio</code>. How is this different than model <em>M2</em>?</li>
 <li>What accounts for the different in sample sizes in <em>M5</em> and <em>M2</em>?</li>
 <li>What model do you think will generally have less biased estimates of the effect of out-relief on pauperism: <em>M5</em> or <em>M2</em>? Explain your reasoning.</li>
 </ul>
@@ -235,11 +241,9 @@ library(&quot;datums&quot;)</code></pre>
 <div id="influential-observations-for-a-coefficient" class="section level2">
 <h2>Influential Observations for a Coefficient</h2>
 <ol style="list-style-type: decimal">
-<li><p>Run <em>M2</em>, deleting each observation and saving the coefficient for <code>outratiodirff</code>. This is a method called the jackknife. You can use a for loop to do this, or you can use the function <code>jackknife</code> in the package <a href="https://github.com/jrnold/resamplr">resamplr</a>.</p>
-<ul>
-<li>For which observations is there the largest change in the coefficient on <code>outratiodiff</code>?</li>
-</ul>
+<li><p>Run <em>M2</em>, deleting each observation and saving the coefficient for <code>outratiodiff</code>. This is a method called the jackknife. You can use a for loop to do this, or you can use the function <code>jackknife</code> in the package <a href="https://github.com/jrnold/resamplr">resamplr</a>.</p>
 <ol style="list-style-type: decimal">
+<li>For which observations is there the largest change in the coefficient on <code>outratiodiff</code>?</li>
 <li>Which observations have the largest effect on the estimate of <code>outratiodiff</code>?</li>
 <li>How do these observations compare with those that had the largest effect on the overall regression as measured with Cook’s distance?</li>
 <li>Compare the results of the jackknife to the <code>dfbeta</code> statistic for <code>outratiodiff</code></li>
@@ -264,15 +268,49 @@ library(&quot;datums&quot;)</code></pre>
 </div>
 <div id="heteroskedasticity" class="section level2">
 <h2>Heteroskedasticity</h2>
+<div id="robust-standard-errors" class="section level3">
+<h3>Robust Standard Errors</h3>
 <ol style="list-style-type: decimal">
-<li>Run <em>M2</em> and <em>M3</em> with a heteroskedasticity consistent (HAC), also called robust, standard error. How does this affect the standard errors on <code>outratio</code> coefficients? Use the <strong>sandwich</strong> package to add HAC standard errors <span class="citation">(Zeileis 2004)</span>.</li>
-<li><p>Model <em>M3</em> is almost equivalent to running separate regressions on each combination of <code>Type</code> and <code>Year</code>.</p>
-<ol style="list-style-type: decimal">
-<li>Run a regression on each subset of combination of <code>Type</code> and <code>Year</code>.</li>
-<li>How do the coefficients, standard errors, and regression standard errors (<span class="math inline">\(\sigma\)</span>) differ from those of <em>M3</em>.</li>
-<li>Compare the robust standard errors in <em>M3</em> to those in the subset regressions. What is the relationship between heteroskedasticity and difference between the single regression with interactions (<em>M3</em>) and the multiple regressions.</li>
-</ol></li>
+<li>Run <em>M2</em> and <em>M3</em> with a heteroskedasticity consistent (HAC) or robust standard error. How does this affect the standard errors on <code>outratio</code> coefficients? Use the <strong>sandwich</strong> package to add HAC standard errors <span class="citation">(Zeileis 2004)</span>.</li>
 </ol>
+</div>
+<div id="multiple-regressions" class="section level3">
+<h3>Multiple Regressions</h3>
+<ol style="list-style-type: decimal">
+<li><p>Run the model with interactions for all years and types</p>
+<pre class="r"><code>lm(pauper2 ~ (outratio + Popn2 + Prop65) * year * Type - 1, data = pauperism)</code></pre></li>
+<li><p>For each subset of <code>year</code> and <code>type</code> run the regression</p>
+<pre class="r"><code>lm(pauper2 ~ outratio + Popn2 + Prop65)</code></pre></li>
+<li><p>Compare the coefficients, standard errors, and regression standard errors in these regresions.</p></li>
+</ol>
+<p>To run the multiple regressions, save models as a list column <code>mod</code>, then save the results of <code>glance</code> and <code>tidy</code> as list columns:</p>
+<pre class="r"><code>all_interact &lt;-
+  crossing(Type = pauperism$Type, year = c(1881, 1891)) %&gt;%
+  mutate(mod = map2(year, Type, 
+                    function(yr, ty) {
+                    lm(paupratiodiff ~ outratiodiff + popratiodiff + oldratiodiff,
+                       data = filter(pauperism,
+                                      year == yr,
+                                      Type == ty))
+                    })) %&gt;%
+  mutate(mod_glance = map(mod, broom::glance),
+         mod_tidy = map(mod, broom::tidy))</code></pre>
+<p>Now extract parts of model. E.g. Standard errors of the regression:</p>
+<pre class="r"><code>all_interact %&gt;%
+  mutate(sigma = map_dbl(mod_glance, function(x) x$sigma)) %&gt;%
+  select(year, Type, sigma)</code></pre>
+<pre><code>## # A tibble: 8 × 3
+##    year         Type     sigma
+##   &lt;dbl&gt;        &lt;chr&gt;     &lt;dbl&gt;
+## 1  1881 Metropolitan  9.886436
+## 2  1891 Metropolitan 24.790240
+## 3  1881        Mixed 16.437527
+## 4  1891        Mixed 17.403411
+## 5  1881        Rural 13.801753
+## 6  1891        Rural 17.078948
+## 7  1881        Urban 19.523919
+## 8  1891        Urban 25.557318</code></pre>
+</div>
 </div>
 <div id="weighted-regression" class="section level2">
 <h2>Weighted Regression</h2>
@@ -280,14 +318,75 @@ library(&quot;datums&quot;)</code></pre>
 <li>Run <em>M2</em> and <em>M3</em> as weighted regressions, weighted by the population (<code>Popn</code>) and interpret the coefficients on <code>outratiodiff</code> and interactions. Informally assess the extent to which the coefficients are different. Which one does it seem to affect more?</li>
 <li>What are some rationales for weighting by population? See the discussion in <span class="citation">Solon, Haider, and Wooldridge (2013)</span> and <span class="citation">Angrist and Pischke (2014)</span>.</li>
 </ol>
-<p><strong>BELOW THIS STILL IN PROGRESS</strong></p>
-</div>
-<div id="average-marginal-effects" class="section level2">
-<h2>Average Marginal Effects</h2>
 </div>
 <div id="cross-validation" class="section level2">
 <h2>Cross-Validation</h2>
-<p>When using regression causal estimation, model specification and choice should largely be based on avoiding omitted variables. Another criteria for selecting models is to use their fit to the data. But a model’s fit to data should not be assessed using only the in-sample data. That leads to overfitting—and the best model would always be to include an indicator variable for every observation Instead, a model’s fit to data can be assessed by using its out-of-sample fit. One way to estimate the <em>expected</em> fit of a model to <em>new</em> data is cross-validation.</p>
+<p>When using regression for causal inference, model specification and choice should largely be based on avoiding omitted variables. Another criteria for selecting models is to use their fit to the data. But a model’s fit to data should not be assessed using only the in-sample data. That leads to overfitting—and the best model would always be to include an indicator variable for every observation Instead, a model’s fit to data can be assessed by using its out-of-sample fit. One way to estimate the <em>expected</em> fit of a model to <em>new</em> data is cross-validation.</p>
+<p>We want to compare the predictive performance of the following models</p>
+<pre class="r"><code>mod_formulas &lt;- 
+  list(
+    m0 = paupratiodiff ~ 1,
+    m1 = paupratiodiff ~ year + Type,    
+    m2 = paupratiodiff ~ outratiodiff + year + Type,
+    m3 = paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type),
+    m4 = -1  + paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type),
+    m5 = paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * year * Type
+  )</code></pre>
+<p>Let’s split the data into 10 (train/test) folds for cross-validation,</p>
+<pre class="r"><code>pauperism_nonmiss &lt;- 
+  pauperism %&gt;%
+  filter(year %in% c(1881, 1891)) %&gt;%
+  select(paupratiodiff, outratiodiff, popratiodiff, oldratiodiff, year, Type, Region, ID) %&gt;%
+  tidyr::drop_na()
+pauperism_10folds &lt;-
+  pauperism_nonmiss %&gt;%
+  resamplr::crossv_kfold(10)</code></pre>
+<p>For each model formula <code>f</code>, training data set <code>train</code>, and test data set, <code>test</code>, run the model specified by <code>f</code> on <code>train</code>, and predict new observations in <code>test</code>, and calculate the RMSE from the residuals</p>
+<pre class="r"><code>mod_rmse_fold &lt;- function(f, train, test) {
+  fit &lt;- lm(f, data = as.data.frame(train))
+  test_data &lt;- as.data.frame(test)
+  err &lt;- test_data$paupratiodiff - predict(fit, newdata = test_data)
+  sqrt(mean(err ^ 2))
+}</code></pre>
+<p>E.g. for one fold and formula,</p>
+<pre class="r"><code>mod_rmse_fold(mod_formulas[[1]], pauperism_10folds$train[[1]],
+              pauperism_10folds$test[[1]])</code></pre>
+<pre><code>## [1] 22.38509</code></pre>
+<p>Now write a function that will calculate the average RMSE across folds for a formula and a cross-validation data frame with <code>train</code> and <code>test</code> list-columns:</p>
+<pre class="r"><code>mod_rmse &lt;- function(f, data) {
+  map2_dbl(data$train, data$test, 
+           function(train, test) {
+             mod_rmse_fold(f, train, test)
+           }) %&gt;%
+    mean()
+}</code></pre>
+<pre class="r"><code>mod_rmse(mod_formulas[[1]], pauperism_10folds)</code></pre>
+<pre><code>## [1] 24.19108</code></pre>
+<p>Finall, we want to run <code>mod_rmse</code> for each formula in <code>mod_formulas</code>. It will be easiest to store this in a data frame:</p>
+<pre class="r"><code>cv_results &lt;- tibble(
+  model_formula = mod_formulas,
+  .id = names(mod_formulas),
+  # Formula as a string
+  .name = map(model_formula,
+              function(x) gsub(&quot; +&quot;, &quot; &quot;, paste0(deparse(x), collapse = &quot;&quot;)))
+)</code></pre>
+<p>Use <code>map</code> to run <code>mod_rmse</code> for each model and save it as a list frame in the data frame,</p>
+<pre class="r"><code>cv_results &lt;-
+  mutate(cv_results,
+         cv10_rmse = map(model_formula, mod_rmse, data = pauperism_10folds))</code></pre>
+<p>In the case of linear regression, the MSE of the Leave-one-out (<span class="math inline">\(n\)</span>-fold) cross-validation can be analytically calculated without having to run <span class="math inline">\(n\)</span> regressions.</p>
+<pre class="r"><code>loocv &lt;- function(x) {
+  mean((residuals(x) / (1 - hatvalues(x))) ^ 2)
+}</code></pre>
+<p>We</p>
+<pre class="r"><code>cv_results &lt;- 
+  mutate(cv_results, 
+         rmse_loo = map(mod_formulas, function(f) sqrt(loocv(lm(f, data = pauperism_nonmiss)))))</code></pre>
+<ol style="list-style-type: decimal">
+<li>In the 10-fold cross validation, which model has the best out of sample prediction?</li>
+<li>Using the LOO-CV cross-validation, which model has the best</li>
+<li>Does the prediction metric (RMSE) and prediction task—predicting individual PLUs from other PLUs—make sense? Can you think of others that you would prefer?</li>
+</ol>
 </div>
 <div id="bootstrapping" class="section level2">
 <h2>Bootstrapping</h2>
@@ -307,6 +406,64 @@ library(&quot;datums&quot;)</code></pre>
 <li>quantiles: A 95% confidence interval uses the 2.5% and 97.5% quantiles of <span class="math inline">\(\theta^*\)</span> for its upper and lower bounds.</li>
 </ul></li>
 </ul>
+<p>Original model</p>
+<pre class="r"><code>mod_formula &lt;- paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * year * Type
+mod_orig &lt;- lm(mod_formula, data = pauperism_nonmiss)</code></pre>
+<pre class="r"><code>bs_coef_se &lt;-
+  resamplr::bootstrap(pauperism_nonmiss, 1024) %&gt;%
+  # extract the strap column
+  `[[`(&quot;sample&quot;) %&gt;%
+  # run 
+  map_df(function(dat) {
+    lm(mod_formula, data = dat) %&gt;%
+    broom::tidy() %&gt;%
+    select(term, estimate)
+  }) %&gt;%
+  # calculate 2.5%, 97.5% and sd of estimates
+  group_by(term) %&gt;%
+  summarise(
+    std.error_bs = sd(estimate),
+    conf.low_bsq = quantile(estimate, 0.025),
+    conf.low_bsq = quantile(estimate, 0.975)
+  )</code></pre>
+<p>Now compare the std.error of the original and the bootstrap for <code>outratiodiff</code></p>
+<pre class="r"><code>broom::tidy(mod_orig, conf.int = TRUE) %&gt;%
+  select(term, estimate, std.error) %&gt;%
+  filter(term == &quot;outratiodiff&quot;) %&gt;%
+  left_join(bs_coef_se, by = &quot;term&quot;)</code></pre>
+<pre><code>##           term  estimate  std.error std.error_bs conf.low_bsq
+## 1 outratiodiff 0.2274375 0.01433042   0.01892719    0.2705519</code></pre>
+<p>The bootstrap standard error is slightly higher. It is similar to the standard error generated using the heteroskedasticity consistent standard error.</p>
+<pre class="r"><code>sqrt(sandwich::vcovHC(mod_orig)[&quot;outratiodiff&quot;, &quot;outratiodiff&quot;])</code></pre>
+<pre><code>## [1] 0.01985823</code></pre>
+<p>It is likely that there is correlation between the error terms of observations. At the very least, each PLU is included twice; these observations are likely correlated, so we are effectively overstating the sample size of our data. One way to account for that is to resample “PLUs”, not PLU-years. This cluster-bootstrap will resample each PLU (and all its observations), rather than resampling the observations themselves.</p>
+<pre class="r"><code>pauperism_nonmiss %&gt;%
+  group_by(ID) %&gt;%
+  resamplr::bootstrap(1024) %&gt;%
+  # extract the strap column
+  `[[`(&quot;sample&quot;) %&gt;%
+  # run 
+  map_df(function(dat) {
+    lm(mod_formula, data = dat) %&gt;%
+    broom::tidy() %&gt;%
+    select(term, estimate)
+  }) %&gt;%
+  # calculate 2.5%, 97.5% and sd of estimates
+  group_by(term) %&gt;%
+  summarise(
+    std.error_bs = sd(estimate),
+    conf.low_bsq = quantile(estimate, 0.025),
+    conf.low_bsq = quantile(estimate, 0.975)
+  ) %&gt;%
+  filter(term == &quot;outratiodiff&quot;)</code></pre>
+<pre><code>## # A tibble: 1 × 3
+##           term std.error_bs conf.low_bsq
+##          &lt;chr&gt;        &lt;dbl&gt;        &lt;dbl&gt;
+## 1 outratiodiff   0.01897169    0.2695278</code></pre>
+<p>However, this yields a standard error not much different than the Robust standard error.</p>
+<ol style="list-style-type: decimal">
+<li>Try bootstrapping “Region” and “BoothGroup”. Do either of these make much difference in the standard errors.</li>
+</ol>
 </div>
 <div id="references" class="section level2 unnumbered">
 <h2>References</h2>
