@@ -364,9 +364,9 @@ Read @Gross2014a and @McCaskeyRainey2015a. Use the methods described in those pa
 
 I'll use the non-differenced model for this question. As shown below, the p-value approach indicates a highly significant coefficient on outratio. That is, if the coefficient on outratio is 0 in truth, the coefficient that is returned by this regression is highly unlikely. 
 
-Gross and McCaskey and Rainey argue that p-values, while not entirely useless, are not descripritve enough to be useful stand-alone measures. Using Gross et alia's PASS-test, we could try to create a range of values (instead of just using 0) that we determine to be "effectively null" (Gross 780) and then determine where the estimated coefficient's confidence interval bounds lie relative to the range of null values. I get the confidence interval (.001 - .0014) in the code below (assuming an alpa of .05, I get an estimate of the confidence interval by adding/subtracting 2 standard deviations from the point estimate). The coefficient is highly significant, but is .0009-.0014 substantively significant? If the confidence interval is entirely outside of the range of null values, Gross would say it is. If the confidence interval is subsumed by the range of null values, Gross would say that the coefficient is not substantively significant. If the two ranges overlap, the coefficient is inconclusively significant.
+Gross and McCaskey and Rainey argue that p-values, while not entirely useless, are not descripritve enough to be useful stand-alone measures. Using Gross et alia's PASS-test, we could try to create a range of values (instead of just using 0) that we determine to be "effectively null" (Gross 780) and then determine where the estimated coefficient's confidence interval bounds lie relative to the range of null values. I get the confidence interval (.001 - .0014) in the code below (assuming an alpha of .05, I get an estimate of the confidence interval by adding/subtracting 2 standard deviations from the point estimate). The coefficient is highly significant, but is .0009-.0014 substantively significant? If the confidence interval is entirely outside of the range of null values, Gross would say it is. If the confidence interval is subsumed by the range of null values, Gross would say that the coefficient is not substantively significant. If the two ranges overlap, the coefficient is inconclusively significant.
 
-McCaskey and Rainey's main point is that confidence intervals (90% confidence intervals) and analysis of the substantiveness of the estimate should be included in research papers. I'm not sure what a substantive change in pauper2 would be for each unit change in outratio, but since our 95% confidence intervals are very small numbers (.001 - .0014) one could probably argue that the effect is negligible. Since the confidence interval is quite narrow, one could argue that there is strong evidence that the effect is negligible.
+McCaskey and Rainey's main point is that confidence intervals (90% confidence intervals specifically) and analysis of the substantiveness of the estimate should be included in research papers. I'm not sure what a substantive change in pauper2 would be for each unit change in outratio, but since our 95% confidence intervals are very small numbers (.001 - .0014) one could probably argue that the effect is negligible. Since the confidence interval is quite narrow, one could argue that there is strong evidence that the effect is negligible.
 ```{r}
 summary(non_diff.reg)
 
@@ -552,7 +552,7 @@ dfbetas2[order(dfbetas2$outratiodiff,decreasing=F)[1:5],]
 pauperism[c(321, 242, 1620, 1413, 1134),]
 ```
 
-# 2. @AronowSamii2015a note that the influence of observations in a regression coefficient is different than the the influence of regression observations in the entire regression. Calculate the observation weights for `outratiodiff`.
+## 2. @AronowSamii2015a note that the influence of observations in a regression coefficient is different than the the influence of regression observations in the entire regression. Calculate the observation weights for `outratiodiff`.
 
 ## 1. Regress `outratiodiff` on the control variables
 ```{r}
@@ -561,7 +561,7 @@ summary(aux_reg)
 ```
 
 ## 2. The weights of the observations are those with the highest squared errors from this regression. Which observations have the highest coefficient values? 
-Aronow et al. note "that more weight goes to units whose treatment values... are not well explained by the covariates" (p.255). So we want to see which values have the highest squared errors in the auxiliary regression of outratiodiff on the control variables. I looked at the squared residuals below and printed out the observations with the 5 largest residuals.
+Aronow et al. note "that more weight goes to units whose treatment values... are not well explained by the covariates" (p.255). So we want to see which values have the highest squared errors in the auxiliary regression of outratiodiff on the control variables. I looked at the squared residuals below and printed out the observations with the 5 largest squared residuals.
 
 ```{r}
 squared_residuals <- resid(aux_reg)^2
@@ -571,7 +571,7 @@ sort(squared_residuals, decreasing=T)[1:5]
 ```
 
 ## 3. How do the observations with the highest regression weights compare with those with the highest changes in the regression coefficient from the jackknife?
-Three of the variables with the largest impact in the jackknife question appear in this question (321, 1620, and 242). It makes sense that the points that have the largest effect on the beta coefficient (as explained by the jackknife) also are among the points that have the highest weights. Aronow et al. state that the "weight wi measures only the contribution of unit i 's effect...to the construction of" the coefficient (255). Therefore it seems intuitive that the observations with higher weights also are considered to be highly influential by the jackknife estimation process.
+Three of the variables with the largest impact in the jackknife question appear in this question (321, 1620, and 242). It makes sense that the points that have the largest effect on the beta coefficient (as explained by the jackknife) also are among the points that have the highest weights. Aronow et al. state that the "weight... measures only the contribution of unit i 's effect...to the construction of" the coefficient (255). Therefore it seems intuitive that the observations with higher weights also are considered to be highly influential by the jackknife estimation process.
 
 
 # Omitted Variable Bias
@@ -602,7 +602,7 @@ beta_R / (beta_R - beta_F)
 
 ## Calculate this statistic for *M2* and interpret it.
 
-The statistic is 3.16. The statistic is mean to gauge, relative to the included control variables, the required effect of omitted variable bias to make the observed coefficient 0. $\hat\beta_F$ denotes the coefficient in the full model and $\hat\beta_F /(\hat\beta_R - \hat\beta_F)$ denotes the change in the coefficient due to the control variables. So, relative any omitted variables would have to have a 3.16x larger effect than the current set of control variables for the estimated coefficient to be 0. I think this metric could made more useful if, instead of looking at the required effect of the potential omitted variables to make the coefficient 0, the metric looked at the required effect of the potential omitted variables to make the coefficient substantively null.
+The statistic is 3.16. The statistic is meant to gauge, relative to the included control variables, the required effect of omitted variable bias to make the observed coefficient 0. $\hat\beta_F$ denotes the coefficient in the full model and $\hat\beta_F /(\hat\beta_R - \hat\beta_F)$ denotes the change in the coefficient due to the control variables. So, any omitted variables would have to have a 3.16x larger effect than the current set of control variables for the estimated coefficient to be 0. I think this metric could made more useful if, instead of looking at the required effect of the potential omitted variables to make the coefficient 0, the metric looked at the required effect of the potential omitted variables to make the coefficient substantively null (using the reasoning layed out by Gross).
 
 # Heteroskedasticity
 
@@ -683,7 +683,7 @@ lm(paupratiodiff ~ outratiodiff + popratiodiff + oldratiodiff, data = filter(pau
 lm(paupratiodiff ~ outratiodiff + popratiodiff + oldratiodiff, data = filter(pauperism, year == 1881, Type == "Urban"))
 lm(paupratiodiff ~ outratiodiff + popratiodiff + oldratiodiff, data = filter(pauperism, year == 1891, Type == "Urban"))
 ```
-The coefficient on outratiodiff varies markedly between models (ranges from 0.7107 where Type is Ubran and year is 1881 to .1657 where Type is Mixed and year is 1891). For each type, the coefficient is higher in 1881 than it is in 1891. Similaryly, the standard error for outratiodiff and the residual standard errors are higher in 1891 than in 1881 within each type.
+The coefficient on outratiodiff varies markedly between models (ranges from 0.7107 where Type is Ubran and year is 1881 to .1657 where Type is Mixed and year is 1891). For each type, the coefficient is higher in 1881 than it is in 1891. Similarly, the standard error for outratiodiff and the residual standard errors are higher in 1891 than in 1881 within each type.
 
 ```{r}
 summary(lm(paupratiodiff ~ outratiodiff + popratiodiff + oldratiodiff, data = filter(pauperism, year == 1881, Type == "Metropolitan")))
