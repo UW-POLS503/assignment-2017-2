@@ -526,6 +526,7 @@ pauperism[c(81, 360, 510, 1460, 1541),]
 
 
 # referenced code here to get largest/smallest V2 values --  http://stackoverflow.com/questions/18685584/find-5-rows-with-the-largest-column-values
+Citation: "Find 5 Rows with the Largest Column Values [duplicate]." Stackoverflow.com. Stack Exchange, Inc., n.d. Web. 3 May 2017. <http://stackoverflow.com/questions/18685584/find-5-rows-with-the-largest-column-values>. referenced answer by username "David" on 9/8/13
 ```
 The estimates that have the largest effect on the estimate of outratiodiff are the 81st and 321st row of the original pauperism dataset. Removing the 81st value leads to the lowest estimate of the coefficient on outratiodiff and removing the 321st estimate leads to the highest estimate of the coefficient on outratiodiff. 
 
