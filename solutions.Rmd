@@ -188,7 +188,7 @@ anova(M4.reg, restricted2)
 ```  
 The question is asking if the coefficient on outratiodiff x Year is 0, meaning that there is no change in ouratio diff across years. Therefore, we can drop the outratio x Year interaction in the restricted equation and run the anova to get our F test (which shows that we can reject the null that outratio x Year is 0).
 
-  3. The coefficients on `outratiodiff` in *M4* are the same across PLU Types
+## 3. The coefficients on `outratiodiff` in *M4* are the same across PLU Types
 
 ```{r}
 restricted3 <- lm(paupratiodiff ~ outratiodiff + outratiodiff*year + (popratiodiff + oldratiodiff) * (year + Type), data=pauperism)
@@ -197,12 +197,12 @@ anova(M4.reg, restricted3)
 The question is asking if the coefficients on outratiodiff x TypeMixed, outradtiodiff x TypeRural, and outratiodiff x TypeUrban are 0, meaning that there is no change in ouratio diff across types. Therefore, we can drop the outratiodiff x Type nteraction variables in the restricted equation and run the anova to get our F test (which shows that we can reject the null that the outratio x Type coefficients are 0).
 
 #### 4 and 1 are the same, except outratiodiff is the only term that we're using in M4. If you can reject the null in 4, it would imply that you can reject the null in M1, but not the other way around
-  4. The coefficients on `outratiodiff` in *M4* are the same across PLU Types and years.
+## 4. The coefficients on `outratiodiff` in *M4* are the same across PLU Types and years.
 ```{r}
 restricted4 <- lm(paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (Type + year), data=pauperism)
 anova(M4.reg, restricted4)
 ```
-The question is asking if the interactions on outratiodiff are significantly different from 0. Therefore, we can drop the outratiodiff x Type and outratio x year nteraction variables in the restricted equation and run the anova to get our F test (which shows that we can reject the null that the outratio interaction coefficients are 0).
+The question is asking if the interactions on outratiodiff are significantly different from 0. Therefore, we can drop the outratiodiff x Type and outratio x year interaction variables in the restricted equation and run the anova to get our F test (which shows that we can reject the null that the outratio interaction coefficients are 0).
 
 
 # 6. Calculate the predicted value and confidence interval for the PLU with the median value of outratiodiff, popratiodiff, and oldratiodiff in each year and PLU Type for these models. Plot the predicted value and confidence interval of these as point-ranges.
@@ -293,7 +293,7 @@ The equation for a confidence interval is: V(y^)=σ^x′0(X′X)−1x. The equat
 Citations -- "Using Confidence Intervals When Prediction Intervals Are Needed." Utexas.edu. University of Texas, n.d. Web. 29 Apr. 2017. <https://www.ma.utexas.edu/users/mks/statmistakes/CIvsPI.html>.
 
 
-## Functional Forms
+# Functional Forms
 
 The regression line of the model estimated in @Yule1899a (ignoring the year and region terms and interactions) can be also written as
 $$
@@ -358,7 +358,7 @@ There are fewer data points in M2 because we are looking at the change in each i
 # What model do you think will generally have less biased estimates of the effect of out-relief on pauperism: *M5* or *M2*? Explain your reasoning.
 Autocorrelation is certainly present in this data and M2 will do a better job of controlling for autocorrelation, I believe. I think that autocorrelation will be controlled more in M2 because M2 does not treat data points on the same ID as independent in different years. For this reason, I would choose M2 over M5. However, autocorrelation will only affect uncertainty, not bias. Perhaps M5 is more biased since it treats each point as independent in the different years, while M2 does not, though I'm not exactly sure if/how that would bias the estimated coefficient.
 
-## Substantive Effects
+# Substantive Effects
 
 Read @Gross2014a and @McCaskeyRainey2015a. Use the methods described in those papers to assess the substantive effects of out-ratio on the rate of pauperism. Use the model(s) of your choosing.
 
@@ -385,11 +385,9 @@ point_estimate - 2 * std_err
 
 ## Influential Observations and Outliers
 
-### Influential Observations for the Regression
-
 For this use *M2*:
 
-# 1. For each observation, calculate and explain the following:
+## 1. For each observation, calculate and explain the following:
 
   - hat value (`hatvalues`)
 ```{r}
@@ -417,7 +415,7 @@ cd_error <- cooks.distance(M2.reg)
 ```
 Cook's distance incorporates estimates of discrepancy and leverage into one metric. 
 
-2. Create an outlier plot and label any outliers. See the example [here](https://jrnold.github.io/intro-methods-notes/outliers.html#iver-and-soskice-data)
+## 2. Create an outlier plot and label any outliers. See the example [here](https://jrnold.github.io/intro-methods-notes/outliers.html#iver-and-soskice-data)
 
 ```{r}
 # set up from jrnold's example
@@ -464,7 +462,7 @@ ggplot() +
   scale_size_continuous("Cook's Distance") + 
   theme_local()
 ```
-3. Using the plot and rules of thumb identify outliers and influential observations
+## 3. Using the plot and rules of thumb identify outliers and influential observations
 
 As mentioned in Chapter 9 of jrnold's intro methods notes, influential points need to have high leverage (have an x value far away from the mean of x) and be an outlier (have a y value far away from the mean of y). The graph above plots hat values (which measure the distance of a point's x value from the mean of x) and studentized residuals (which measure the residual while controlling for the effect of the point on the residual estimates). Points where the studentized residual is greater than or less than 2 are considered outliers and points where the hat value is greater than 2 or 3 the standard deviations from the mean are high leverage points. Using the most rigorous definitions, the code below shows that there is only one point that is both an influential point (hat value greater than 3 sd from the mean) and an outlier (studentized residual greater than 2).
 
@@ -501,9 +499,9 @@ ggplot() +
   theme_local()
 ```
 
-## Influential Observations for a Coefficient
+# Influential Observations for a Coefficient
 
-# 1. Run *M2*, deleting each observation and saving the coefficient for `outratiodirff`. This is a method called the jackknife. You can use a for loop to do this, or you can use the function `jackknife` in the package [resamplr](https://github.com/jrnold/resamplr).
+Run *M2*, deleting each observation and saving the coefficient for `outratiodirff`. This is a method called the jackknife. You can use a for loop to do this, or you can use the function `jackknife` in the package [resamplr](https://github.com/jrnold/resamplr).
 
 ```{r}
 library("bootstrap")
@@ -576,7 +574,7 @@ sort(squared_residuals, decreasing=T)[1:5]
 Three of the variables with the largest impact in the jackknife question appear in this question (321, 1620, and 242). It makes sense that the points that have the largest effect on the beta coefficient (as explained by the jackknife) also are among the points that have the highest weights. Aronow et al. state that the "weight wi measures only the contribution of unit i 's effect...to the construction of" the coefficient (255). Therefore it seems intuitive that the observations with higher weights also are considered to be highly influential by the jackknife estimation process.
 
 
-## Omitted Variable Bias
+# Omitted Variable Bias
 
 An informal way to assess the potential impact of omitted variables on the coeficient of the variable of interest is to coefficient variation when covariates are added as a measure of the potential for omitted variable bias [@Oster2016a].
 @NunnWantchekon2011a (Table 4) calculate a simple statistic for omitted variable bias in OLS. This statistic "provide[s] a measure to gauge the strength of the likely
@@ -602,7 +600,7 @@ beta_R / (beta_R - beta_F)
 # [1] 3.159196
 ```
 
-#### Calculate this statistic for *M2* and interpret it.
+## Calculate this statistic for *M2* and interpret it.
 
 The statistic is 3.16. The statistic is mean to gauge, relative to the included control variables, the required effect of omitted variable bias to make the observed coefficient 0. $\hat\beta_F$ denotes the coefficient in the full model and $\hat\beta_F /(\hat\beta_R - \hat\beta_F)$ denotes the change in the coefficient due to the control variables. So, relative any omitted variables would have to have a 3.16x larger effect than the current set of control variables for the estimated coefficient to be 0. I think this metric could made more useful if, instead of looking at the required effect of the potential omitted variables to make the coefficient 0, the metric looked at the required effect of the potential omitted variables to make the coefficient substantively null.
 
@@ -736,7 +734,7 @@ Solon et al. list 3 potential reasons for weighting. A researcher could choose t
 
 I referenced Solon et al. and a blog post by Friedman (citation: Friedman, Jed. "Tools of the Trade: When to Use Those Sample Weights." Blog post. Blogs.worldbank.org. The World Bank, 13 Mar. 2013. Web. 3 May 2017. <https://blogs.worldbank.org/impactevaluations/tools-of-the-trade-when-to-use-those-sample-weights>. ), which discusses "Solon et alia's article -- "What Are We Weighting For" to answer this question.
 
-## Cross-Validation
+# Cross-Validation
 
 When using regression causal estimation, model specification and choice should largely be based on avoiding omitted variables. 
 Another criteria for selecting models is to use their fit to the data.
