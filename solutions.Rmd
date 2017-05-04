@@ -1,7 +1,7 @@
 ---
 title: "Solutions to POLS 503 Assignment 2"
 author: "Grace Reinke"
-date: "4/21/2017"
+date: "5/2/17"
 ---
 
 # Setup and Original Specifications 
