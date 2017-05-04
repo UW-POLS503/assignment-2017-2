@@ -4,10 +4,6 @@ author: "Sebastian Mayer"
 date: "05/03/2017"
 output: html_document
 ---
-```{r}
-#library("git2r")
-#config(global = TRUE, user.email = "youremail@whatever", user.name = "yourname")
-```
 
 # Setup
 
@@ -332,8 +328,6 @@ for (i in 1:nrow(pauperism)) {
   jackknifeCOEF[i, ] <- coef((lm(paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type), data = pauperism[-i, ])))
 }
 
-
-jackknifeCOEF
 ```
 
   
@@ -358,7 +352,7 @@ jackknifeCOEF
     
 
 ```{r}
-dfbeta(M2)
+dfbeta <- dfbeta(M2)
 
 ```
 
@@ -661,8 +655,6 @@ broom::tidy(mod_orig, conf.int = TRUE) %>%
   filter(term == "Region") %>%
   left_join(bs_coef_se, by = "term")
 
-
-#sqrt(sandwich::vcovHC(mod_orig)["Region", "Region"])
 
 pauperism_nonmiss %>%
   group_by(ID) %>%
