@@ -4,6 +4,10 @@ author: "Sebastian Mayer"
 date: "05/03/2017"
 output: html_document
 ---
+```{r}
+#library("git2r")
+#config(global = TRUE, user.email = "youremail@whatever", user.name = "yourname")
+```
 
 # Setup
 
