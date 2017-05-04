@@ -9,11 +9,12 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
+```{r include=FALSE}
 library("tidyverse")
 library("modelr")
 library ("resamplr")
-
+library(texreg)
+library(car)
 devtools::install_github("jrnold/datums")
 library(datums)
 
@@ -22,10 +23,10 @@ pauperism <-
             by = "ID") %>%
   mutate (year = as.character(year))
 ```
+### Original Specification
+##### 1. Present the regressions results in a regression table
 
-1. Present the regressions results in a regression table
-
-```{r}
+```{r include=FALSE}
 reg_M1<- lm(paupratiodiff~ outratiodiff + year + Type, data = pauperism)
 summary (reg_M1)
 
@@ -38,30 +39,458 @@ summary (reg_M3)
 reg_M4<- lm (paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type), data= pauperism)
 summary (reg_M4)
 ```
+```{r results='asis'}
+results<- list (reg_M1, reg_M2,reg_M3, reg_M4)
+htmlreg(results, custom.model.names = c("M1", "M2","M3","M4"))
 
-2. Interpret the coefficients for `outratiodiff` for each model.
-M1: Hold year and Type constant, one unit increase in outratiodiff is on average in associated with 0.2343 increase in pauprism ratio difference. 
+```
 
-3. Write the equations for each or all models, and describe the model with a sentence or two. Try to be as concise as possible. Look at recent journal articles for examples of the wording and format.
+##### 2. Interpret the coefficients for `outratiodiff` for each model.
+M1: Holding year and Type constant, one unit increase in outratiodiff is on average in associated with 0.2343 increase in pauprism ratio difference. Given the t value being 15.565 and P value smaller than 2e-16, the result is statistically significant. 
 
-M1: $y=\beta1*outratiodiff +\beta2*year+ \beta3*Type +\epsilon$
-M1 seeks to uncover the relationship between XXX and XXX, when holding year and Type constant. 
+M2: Holding popratiodiff, oldratiodiff, year and Type and their interaction term constant, one unit increase in ouratiodiff is on average in associated with 0.23258 increase in pauprism ratio difference. Given the t value being 16.182 and P value smaller than 2e-16, the result is statistically significant. 
 
-M2: 
-for interaction interpretation: is one coefficient different by type
+M3: Holding outratiodiff, popratiodiff, oldratiodiff, year and Type and their interaction term constant, one unit increase in ouratiodiff is on average in associated with  0.53118 increase in pauprism ratio difference. The t value is 8.613 and P value is smaller than 2e-16, so the result is statistically significant. 
 
-4. What is the difference between *M3* and *M4*. What are the pros and cons of each parameterization?
+M4: Holding outratiodiff, popratiodiff, oldratiodiff, year and Type and their interaction term constant, one unit increase in ouratiodiff is on average in associated with  0.53118 increase in pauprism ratio difference. The t value is 8.613 and P value is smaller than 2e-16, the result is statistically significant. 
 
-M3 and M4 only changes the intercept, because the -1 included in the formula. So the intercept in M3 is 1 lower than in M4, while all the slopes don't change. 
+##### 3. Write the equations for each or all models, and describe the model with a sentence or two. Try to be as concise as possible. Look at recent journal articles for examples of the wording and format.
+
+M1: paupratiodiff ~ outratiodiff + year + Type
+$paupratiodiff=\beta1*outratiodiff +\beta2*year+ \beta3*Type +\epsilon$
+M1 seeks to uncover the relationship between paupratiodiff and outratiodiff, when holding year and Type constant. 
+
+M2: paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type)
+$paupratiodiff=\beta1*outratiodiff +\beta2*popratiodiff+ \beta3*oldratiodiff +\beta4*year+ \beta5*Type+ \beta6* (popratiodiff*year) +\beta7* (popratiodiff*Type) + \beta8* (oldratiodiff*year) + beta9*(oldratiodiff*Type)+ \epsilon$
+
+M2 seeks to uncover the relationship between paupratiodiff and outratiodiff, when holding popratiodiff, oldratiodiff, year, Type fixed and conditioned on their interaction term.
+
+M3: -1 + paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year +
+Type)
+$-1+ paupratiodiff= \beta1*outratiodiff+ \beta2*popratiodiff+ \beta3*oldratiodiff+ \beta4*year+ \beta5*Type + \beta6*outratiodiff*year+ \beta7* outratio*Type+ \beta8*popratiodiff*year+ \beta9*popratiodiff*Type+ \beta10*oldratiodiff*year + \beta11*oldratiodiff*Type+ \epsilon $
+
+Description: M3 seeks to uncover the relationship between paupratiodiff and outratiodiff, conditioned on year and Type, while controlling for popratiodiff and oldratiodiff.
+
+M4: paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year +
+Type)
+
+$paupratiodiff= \beta1*outratiodiff+ \beta2*popratiodiff+ \beta3*oldratiodiff+ \beta4*year+ \beta5*Type + \beta6*outratiodiff*year+ \beta7* outratiodiff*Type+ \beta8*popratiodiff*year+ \beta9*popratiodiff*Type+ \beta10*oldratiodiff*year+ \beta11*oldratiodiff*Type+ \epsilon$
+
+Description: M4 seeks to uncover the relationship between paupratiodiff and outratiodiff, conditioned on year and Type, while controlling for popratiodiff and oldratiodiff.
+
+##### 4. What is the difference between *M3* and *M4*. What are the pros and cons of each parameterization?
+
+M3 and M4 only changes the intercept that -1 is included in model M3 but not M4. Hence the intercept in M3 is 1 lower than in M4, while all the slopes don't change. 
 
 Advantage and Disadvantage: 
-[If converting units, coefficient will change, but the substantive relationship will not change] 
-Try to think about it with ratio
-Is it a good transformation? 
 
-5. Conduct F-tests on the hypotheses
+Advantages: If converting units, the intercept coefficient will change, but the substantive relationship will not change. In this particular study, since paupratiodiff is always positive and we are supposed to make comparison with 1. Including -1 would make it easier to compare with 0. If it's above 0, there is an increase in pauperism while below 0 would indicate a decrease. 
+Disadvantage: Not quite sure. 
+
+##### 5. Conduct F-tests on the hypotheses
+- All interactions in M4 are 0
+M4: paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year +
+Type)
+```{r}
+reg_M4_1<- lm (paupratiodiff~outratiodiff+popratiodiff+oldratiodiff+year+Type,data=pauperism)
+anova(reg_M4, reg_M4_1)
+```
+
+- The coefficients on outratiodiff in M4 are the same across years
+```{r}
+linearHypothesis(reg_M4,c("outratiodiff:year1891"))
+```
+- The coefficients on outratiodiff in M4 are the same across PLU Types
 
 ```{r}
-library(car)
-linearHypothesis(reg_M4, c("outratiodiff:year","outratiodiff:TypeMixed"))
+linearHypothesis(reg_M4,c("outratiodiff:TypeUrban", "outratiodiff:TypeRural", "outratiodiff:TypeMixed"))
 ```
+
+- The coefficients on outratiodiff in M4 are the same across PLU Types and years.
+
+```{r}
+linearHypothesis(reg_M4, c("outratiodiff:year1891","outratiodiff:TypeUrban", "outratiodiff:TypeRural", "outratiodiff:TypeMixed"))
+```
+
+##### 6. Calculate the predicted value and confidence interval for the PLU with the median value of outratiodiff, popratiodiff, and oldratiodiff in each year and PLU Type for these models. Plot the predicted value and confidence interval of these as point-ranges.
+
+```{r warning=FALSE}
+new<- pauperism %>%
+  group_by(Type, year) %>%
+  filter(year!=1871) %>% # in 1871 there are only NAs
+  summarize(outratiodiff=median(outratiodiff,na.rm=T), popratiodiff=median(popratiodiff, na.rm=T), oldratiodiff=median (oldratiodiff, na.rm=T))
+
+levels<- expand.grid(year=c("1881", "1891"), Type=c("Metropolitan","Mixed","Urban","Rural",NA))
+
+pre_1<-predict(reg_M1, new, interval= c("confidence"),na.action = na.pass)
+pre_1_plot<-cbind(levels,pre_1)
+
+ggplot (pre_1_plot) +
+  geom_pointrange(aes(x=Type, y=fit, ymin=lwr, ymax=upr))+
+  facet_wrap(~year)+
+  labs(x="PLU Type", y="outratiodiff", title="M1- CI")
+
+pre_2<- predict.lm(reg_M2, new, interval= c("confidence"),na.action = na.pass)
+pre_2_plot<-cbind(levels,pre_2)
+
+ggplot (pre_2_plot) +
+  geom_pointrange(aes(x=Type, y=fit, ymin=lwr, ymax=upr))+
+  facet_wrap(~year)+
+  labs(x="PLU Type", y="outratiodiff", title="M2- CI")
+
+pre_3<- predict.lm(reg_M3, new, interval= c("confidence"),na.action = na.pass)
+pre_3_plot<-cbind(levels,pre_3)
+
+ggplot (pre_3_plot) +
+  geom_pointrange(aes(x=Type, y=fit, ymin=lwr, ymax=upr))+
+  facet_wrap(~year)+
+  labs(x="PLU Type", y="outratiodiff", title="M3- CI")
+
+pre_4<- predict.lm(reg_M4, new, interval= c("confidence"),na.action = na.pass)
+pre_4_plot<-cbind(levels,pre_4)
+
+ggplot (pre_4_plot) +
+  geom_pointrange(aes(x=Type, y=fit, ymin=lwr, ymax=upr))+
+  facet_wrap(~year)+
+  labs(x="PLU Type", y="outratiodiff", title="M4- CI")
+```
+
+##### 7. As previously, calculate the predicted value of the median PLU in each year and PLU Type. But instead of confidence intervals include the prediction interval. How do the confidence and prediction intervals differ? What are their definitions?
+
+```{r warning=FALSE}
+pre_5<-predict(reg_M1, new, interval= c("prediction"),na.action = na.pass)
+pre_5_plot<-cbind(levels,pre_5)
+
+ggplot (pre_5_plot) +
+  geom_pointrange(aes(x=Type, y=fit, ymin=lwr, ymax=upr))+
+  facet_wrap(~year)+
+  labs(x="PLU Type", y="outratiodiff", title="M1- PI")
+
+pre_6<- predict.lm(reg_M2, new, interval= c("prediction"),na.action = na.pass)
+pre_6_plot<-cbind(levels,pre_6)
+
+ggplot (pre_6_plot) +
+  geom_pointrange(aes(x=Type, y=fit, ymin=lwr, ymax=upr))+
+  facet_wrap(~year)+
+  labs(x="PLU Type", y="outratiodiff", title="M2- PI")
+
+pre_7<- predict.lm(reg_M3, new, interval= c("prediction"),na.action = na.pass)
+pre_7_plot<-cbind(levels,pre_7)
+
+ggplot (pre_7_plot) +
+  geom_pointrange(aes(x=Type, y=fit, ymin=lwr, ymax=upr))+
+  facet_wrap(~year)+
+  labs(x="PLU Type", y="outratiodiff", title="M3- PI")
+
+pre_8<- predict.lm(reg_M4, new, interval= c("prediction"),na.action = na.pass)
+pre_8_plot<-cbind(levels,pre_8)
+
+ggplot (pre_8_plot) +
+  geom_pointrange(aes(x=Type, y=fit, ymin=lwr, ymax=upr))+
+  facet_wrap(~year)+
+  labs(x="PLU Type", y="outratiodiff", title="M4- PI")
+
+```
+
+Difference: Although both are centered on the same fitted value, the range for prediction interval are much larger than that for confidence interval. This is because the standard error they use for calculation are different. When calculating confidence interval, the interval is usually narrower than that of prediction interval for 2 reasons. 1) one has already included the data in their sample and modelling process, while one should not have sampled those data for prediction in their previous modeling process; 2) The standard error used for confidence interval only accounts for sampling error while that used for prediction interval accounts for both sampling error and the variablity of the true error term. 
+
+Definition: Prediction interval: an interval associated with a random variable yet to be observed (forecasting).
+Confidence interval: a predicted interval around mean, which one has already got.
+
+
+### Functional Forms
+
+##### 1. Write a model that includes only the log differences (log(xt) − log(xt−1)) with only the pauper2, outratio, Popn2, and Popn65 variables.
+  
+$100*(log(pauper2_t)-log(pauper2_{t-1}))-(log(popn2_t)- log(popn2_{t-1})) = \beta_0 +\beta_1 * 100* (log(outratio_t)- log(outratio_{t-1}))+ \beta_2 *100* ((log(Prop65_t)-log(Prop65_{t-1})-(log(Popn2_t)-log(Popn2_{t-1}))+ \beta_3 *100* (log(Popn2_t)-log(Popn2_{t-1}))$
+  
+##### 2. Estimate the model with logged difference predictors, Year, and month and interpret the coefficient on log($outratio_t$).
+
+I am pretty unsure about this quesiton.. 1) there is no month.. 2) do we still need to include Type? 
+```{r}
+reg_log<- lm(log(pauper2) ~ (log(outratio)+ log(Prop65)+ log(Popn2))* year, data=pauperism)
+summary(reg_log)
+```
+The coefficient on log (outratio) is 0.136. It suggests that when conditioned on year and controlling for Popn2 and Prop65, population and proportion of elders over 65, every 1 percentage change in outratio would lead to 0.136 percentage change in pauperism on average.
+
+##### 3. What are the pros and cons of this parameterization of the model relative to the one in Yule (1899)? Focus on interpretation and the desired goal of the inference rather than the formal tests of the regression. Can you think of other, better functional forms?
+
+Answer: Using a log-log model would allow us to get both dependent variable and independent variable in the percentage, which in this case allows us to have a easier intepretation in percentage changes. 
+### Non-differenced Model
+Suppose you estimate the model (M5) without differencing, 
+M5: pauper2 ~ outratio + (Popn2 + Prop65) * (year + Type)
+```{r}
+reg_M5<-lm(pauper2 ~ outratio + (Popn2 + Prop65) * (year + Type), data= pauperism)
+summary(reg_M5)
+```
+
+##### 1.Interpret the coefficient on outratio. How is this different than model M2?
+The estimate of outratio is 1.213e-03, and the P value is < 2e-16, which suggests that the result is statistically significant. It suggests that when conditioned by both Type and year, and controlling for Prop 65(the proportion of elders over 65) and population, one unit increase in outratio would lead to 1.213e-03 increase in pauper on average. 
+
+In M2, the estimate for outratiodiff is 0.23 and also statistically significant.  
+
+##### 2. What accounts for the different in sample sizes in M5 and M2?
+Sample size of M5 is 1754+5=1759, with 24 observations taken out.
+Sample size of M2 is 1164+5=1169， with 617 observation taken out. 
+The difference is because M2 calculates differents in ratio between two years, so there is no data for the first year (1871) and 1/3 of the observations are removed. 
+
+##### 3. What model do you think will generally have less biased estimates of the effect of out-relief on pauperism:
+M5 or M2? Explain your reasoning. 
+I think M2 will do bette. This research aims to explore the effect of out-relief as a national policy, so it is change between year that lies in the center of the analysis. When we use outratio and pauper2 as variable, we still don't know what the difference between years and need to calculate manually.. 
+
+### Substantive Effects
+Read Gross (2014) and McCaskey and Rainey (2015). Use the methods described in those papers to assess the substantive effects of out-ratio on the rate of pauperism. Use the model(s) of your choosing.
+
+Following the way described by McCaskey and Rainer (2015), when evaluating the substantive effects, one should do three things. 1) Compute 90% confidence intervals around the estimated effects. 2) Interpret each endpoint of the interval. And 3) Claim that the effect is substantively meaningful if and only if all effects in the confidence interval are substantively meaningful.
+Here I am using M2 as the example. First, outratiodiff has $\beta1=0.23258$ so it suggests that outratiodiff (explanatory variable), has a positive effect on  paupratiodiff (outcome variable), and it has a very small P value <2e-16, suggesting statistically significant at the 90% confidence interval. The standard error is 0.01437, so the confidence interval at 90% level is $(0.23458-1.645*0.01437,  0.23458+1.645*0.01437)$ = (0.2109413, 0.2582186). So both endpoint of the interval are positive. Moreover, subjectively speaking, based on the scale of 0~1, ratio increase in 0.211 or 0.258 are both substantial. So are all effects within the cofnidence interval. 
+
+
+### Influential Observations and Outliers
+#### Influential Observations for the Regression
+For this use M2:
+##### 1. For each observation, calculate and explain the following:
+• hat value (hatvalues)
+```{r}
+library(stats)
+hatscore<- hatvalues(reg_M2)/mean(hatvalues(reg_M2)) # standardized 
+max(hatscore)
+min(hatscore)
+```
+
+Explanation: Each hatvalue describes the impact that each y has on each $\hat y$. Using max() and min (), I find the largest hat value is 48.35 and the smallest is 0.24. 
+
+• standardized error (rstandard) 
+```{r}
+rstan<- rstandard(reg_M2)
+```
+• studentized error (rstudent)
+```{r}
+rstu<- rstudent(reg_M2)
+```
+
+• Cook’s distance (cooksd)
+```{r}
+cookssd<- as.data.frame(cooks.distance(reg_M2))
+max(cookssd)
+```
+As measured with Cook's distance, the observation with the largest effect on the overall regression is #1413 observation, with cook's distance being 4.455003e-01. 
+
+##### 2. Create an outlier plot and label any outliers. 
+
+```{r}
+plot(hatscore,rstu, xlab="Standardized hat-values", ylab="Studentized Residuals",
+main="Influence Plot")
+abline(h=c(-2,2), lty=2)
+abline(v=c(2,3), lty=c(2,3))
+```
+
+##### 3. Using the plot and rules of thumb identify outliers and influential observations
+The outliers are those points with standardized hat-values higher than 2 or 3 (large influence) and the one with studentized residuals higher than 2 or lower than -2 (high discrepancy). . 
+
+
+#### Influential Observations for a Coefficient
+##### 1. Run M2, deleting each observation and saving the coefficient for outratiodiff. This is a method called the jackknife. You can use a for loop to do this, or you can use the function jackknife in the package resamplr.
+
+```{r message=FALSE}
+library(bootstrap)
+library(car)
+data <- pauperism #dataset
+model <- formula(paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type)) #Model formula
+theta <- function(x, xdata, coefficient){ #Function to extract coefficients
+              coef(lm(model, data=xdata[x,]))[coefficient] }
+
+jackknife.apply <- function(x, xdata, coefs) #Function to repeat extraction
+{sapply(coefs,
+       function(coefficient) jackknife(x, theta, xdata=xdata, coefficient=coefficient),
+        simplify=F)}
+
+results <- jackknife.apply(1:nrow(data), data, c("(Intercept)", "outratiodiff", "popratiodiff", "oldratiodiff", "year1891","TypeMixed","TypeRural","TypeUrban","popratiodiff:year1891","popratiodiff:TypeMixed","popratiodiff:TypeRural","popratiodiff:TypeUrban","oldratiodiff:year1891", "oldratiodiff:TypeMixed","oldratiodiff:TypeRural","oldratiodiff:TypeUrban"))
+
+jackknifeCOEF <- matrix(NA, ncol=16, nrow=1797)
+
+colnames(jackknifeCOEF) <- c("(Intercept)", "outratiodiff", "popratiodiff", "oldratiodiff", "year1891","TypeMixed","TypeRural","TypeUrban","popratiodiff:year1891","popratiodiff:TypeMixed","popratiodiff:TypeRural","popratiodiff:TypeUrban","oldratiodiff:year1891", "oldratiodiff:TypeMixed","oldratiodiff:TypeRural","oldratiodiff:TypeUrban")
+
+for (i in 1:nrow(data)){
+  jackknifeCOEF[i,] <- coef(lm (paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type), data=data[-i,]))
+}
+jackknifeCOEF<- as.data.frame(jackknifeCOEF)
+```
+
+1. For which observations is there the largest change in the coefficient on outratiodiff?
+
+```{r}
+jackknifeCOEF <- dplyr::mutate (jackknifeCOEF, diff_outratiodiff=0)
+  
+for (i in 1:nrow(jackknifeCOEF)) {
+ jackknifeCOEF[i,"diff_outratiodiff"]<-  abs(jackknifeCOEF[i+1,"outratiodiff"]-jackknifeCOEF[i,"outratiodiff"])
+ }
+
+max(jackknifeCOEF[,"diff_outratiodiff"], na.rm = T)
+```
+Knowing the max of change is 0.009456191 and going back to the dataset of jackknifeCOEF, it allows us to find out the observation with the largest changes is the 321st observations. 
+Question here: do the order of observations in jackknifeCOEF different from pauperism? We lose the ID so I am unsure about it.. 
+
+2. Which observations have the largest effect on the estimate of outratiodiff?
+I am confused with how this question is asked. It seems that the first and the second question are asking the same thing that the observations causing the largest change on coefficient are also those with the largest effect. 
+It might also make sense to look for the observations causing the largest changes to standard error. But I don't know how to calculate the standard error here.. 
+
+3. How do these observations compare with those that had the largest effect on the overall regression
+as measured with Cook’s distance?
+
+As earlier measured with Cook's distance, the observation with the largest effect on the overall regression is #1413 observation, with cook's distance being 4.455003e-01. 
+
+4. Compare the results of the jackknife to the dfbeta statistic for outratiodiff
+```{r}
+
+new.pauperism <- na.omit(pauperism)
+
+dfbetaCOEF<-dfbetas(reg_M2)
+max(dfbetaCOEF[,"outratiodiff"])
+min(dfbetaCOEF[,"outratiodiff"])
+```
+
+I don't know how to explain it and it looks weird to me that the observation (#321)  with the minimum dfbeta statistic for outratiodiff turns out to be the same observation with the maximum jackknife statistic for outratiodiff. 
+
+##### 2. Aronow and Samii (2015) note that the influence of observations in a regression coefficient is different than the the influence of regression observations in the entire regression. Calculate the observation weights for outratiodiff.
+
+1. Regress outratiodiff on the control variables
+```{r}
+reg_M6<-lm(outratiodiff~popratiodiff+oldratiodiff+year+Type, data= pauperism)
+summary(reg_M6)
+```
+2. The weights of the observations are those with the highest squared errors from this regression.
+Which observations have the highest coefficient values?
+
+```{r}
+M6_res<- as.data.frame(resid(reg_M6))^2
+max(M6_res)
+```
+
+Quite confused with the question. The observation with the highest squared errors is the 321st observation. 
+
+3. How do the observations with the highest regression weights compare with those with the highest
+changes in the regression coefficient from the jackknife? 
+If I have done the previous questions right, they are the same one.
+
+
+### Omitted Variable Bias
+An informal way to assess the potential impact of omitted variables on the coeficient of the variable of interest is to coefficient variation when covariates are added as a measure of the potential for omitted variable bias (Oster 2016). Nunn and Wantchekon (2011) (Table 4) calculate a simple statistic for omitted variable bias in OLS. This statistic “provide[s] a measure to gauge the strength of the likely bias arising from unobservables: how much stronger selection on unobservables, relative to selection on observables, must be to explain away the full estimated effect.”
+
+##### 1. Run a regression without any controls. Denote the coefficient on the variable of interest as βˆR.
+```{r}
+reg_M2_2<- lm (paupratiodiff~outratiodiff ,data=pauperism)
+summary(reg_M2_2)
+```
+The coefficient for outratiodiff ($\beta_r$) is 0.30624. 
+
+##### 2. Run a regression with the full set of controls. Denote the coefficient on the variable of interest in this regression as βˆF .
+
+```{r}
+summary(reg_M2)
+```
+
+The coefficient for outratiodiff ($\beta_f$) is 0.23258
+
+##### 3. The ratio is βˆF /(βˆR − βˆF )
+Calculate this statistic for M2 and interpret it.
+```{r}
+0.23258/(0.30624-0.23258)
+```
+
+The statistic is 3.15748. 
+Interpretation: Based on Nunn and wantchekon (2011) (p3238) and the fact taht the ratio is 3.2, to attribute the entire OLS estimate to selection effects, selection on unobservables would have to be at least 3.2 times greater than selection on observables. And this makes it less likely that the estimated effect of the pauperism is fully driven by unobservables.
+
+### Heteroskedasticity
+#### Robust Standard Errors
+##### 1. Run M2 and M3 with a heteroskedasticity consistent (HAC) or robust standard error. How does this affect the standard errors on outratio coefficients? Use the sandwich package to add HAC standard errors (Zeileis 2004).
+```{r message=FALSE}
+library(sandwich)
+
+vcovHAC(reg_M2)
+HAC_M2<- sqrt(diag(vcovHAC(reg_M2))) #Gives the HAC standard errors
+
+vcovHAC(reg_M3)
+HAC_M3<- sqrt(diag(vcovHAC(reg_M3)))
+```
+
+The standard error on outratio coefficient (M2) becoems 0.01940048, which originally was 0.01437. 
+The standard error on outratio coefficient (M3) becoems 0.07492472, which originally was 0.06167. 
+I feel it just making the standard errors on outratio coefficients larger than before.. 
+
+#### Multiple Regressions 
+#####1. Run the model with interactions for all years and types
+```{r}
+lm(pauper2 ~ (outratio + Popn2 + Prop65) * year * Type - 1, data = pauperism)
+```
+
+##### 2. For each subset of year and type run the regression lm(pauper2 ~ outratio + Popn2 + Prop65)
+```{r message=FALSE}
+reg_1881_urban<- lm(pauper2 ~ outratio + Popn2 + Prop65, data=filter (pauperism, year==1881,Type=="Urban"))
+summary(reg_1881_urban)
+
+reg_1881_mixed<- lm(pauper2 ~ outratio + Popn2 + Prop65, data=filter (pauperism, year==1881,Type=="Mixed"))
+summary(reg_1881_mixed)
+
+reg_1881_rural<- lm(pauper2 ~ outratio + Popn2 + Prop65, data=filter (pauperism, year==1881,Type=="Rural"))
+summary(reg_1881_rural)
+
+reg_1881_metropolitan<- lm(pauper2 ~ outratio + Popn2 + Prop65, data=filter (pauperism, year==1881,Type=="Metropolitan"))
+summary(reg_1881_metropolitan)
+
+  reg_1891_urban<- lm(pauper2 ~ outratio + Popn2 + Prop65, data=filter (pauperism, year==1891, Type=="Urban"))
+  summary(reg_1891_urban)
+  
+  reg_1891_mixed<- lm(pauper2 ~ outratio + Popn2 + Prop65, data=filter (pauperism, year==1891, Type=="Mixed"))
+  summary(reg_1891_mixed)
+  
+  reg_1891_rural<- lm(pauper2 ~ outratio + Popn2 + Prop65, data=filter (pauperism, year==1891, Type=="Rural"))
+  summary(reg_1891_rural)
+  
+  reg_1891_Metropolitan<- lm(pauper2 ~ outratio + Popn2 + Prop65, data=filter (pauperism,year==1891, Type=="Metropolitan"))
+  summary(reg_1891_Metropolitan)
+```
+Ok.. I didn't see he has provided the codes.. But I guess my very basic code might also work? 
+
+##### 3. Compare the coefficients, standard errors, and regression standard errors in these reggresions.
+```{r}
+all_interact <-
+  crossing(Type = pauperism$Type, year = c(1881, 1891)) %>% 
+  mutate(mod = map2(year, Type,
+                    function(yr, ty) {
+                      lm(paupratiodiff ~ outratiodiff + popratiodiff + oldratiodiff,
+                         data = filter(pauperism, year == yr, Type == ty))
+})) %>%
+  mutate(mod_glance = map(mod, broom::glance),mod_tidy = map(mod, broom::tidy))
+
+all_interact$mod_tidy
+
+all_interact %>%
+  mutate(sigma = map_dbl(mod_glance, function(x) x$sigma)) %>% # standard error
+  mutate(beta = map_dbl(mod_glance, function(x) x$statistic)) %>% # coefficient
+  mutate (sigma_2 = map_dbl(mod_tidy, function (x) x$std.error[2])) %>% 
+  select(year, Type, beta, sigma, sigma_2)
+
+```
+
+### Weighted Regression
+##### 1. Run M2 and M3 as weighted regressions, weighted by the population (Popn) and interpret the coefficients on outratiodiff and interactions. Informally assess the extent to which the coefficients are different. Which one does it seem to affect more?
+```{r}
+reg_M2_weighted<- lm (paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type), data=pauperism, weights = Popn)
+summary (reg_M2_weighted)
+```
+
+The coefficient on outratiodiff is 0.364, which originally was 0.23258.
+
+```{r}
+reg_M3_weighted<- lm(-1  + paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type), data= pauperism, weights = Popn)
+summary (reg_M3_weighted)
+```
+
+The coefficient for outratiodiff is 0.71677, which originally was 0.53118. 
+It seems to affect more to M2, as the increase rate is (0.36- 0.23)/0.23 = 0.56, more than 50% increase. For M2, the increase rate  is (0.71677- 0.53118)/0.53118= 0.349, around 1/3. 
+
+##### 2. What are some rationales for weighting by population? See the discussion in Solon, Haider, and Wooldridge (2013) and Angrist and Pischke (2014).
+One rationales might be to achieve more precise estimates bycorrecting for population-size-related heteroskedasticity, which might exist in the error terms. The second rationale could be to achieve consistent estimates by correcting for endogenous sampling, if the samples are not randomly sampled. The third could be to identify average partial effects in the presence of unmodeled heterogeneity of effects.
+
+### Cross-validation and Bootstrapping
+Sorry, just don't have enough time to work them out. 
