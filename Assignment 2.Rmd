@@ -1,0 +1,87 @@
+---
+title: "Assignment 2"
+author: "Hanjie WANG"
+date: "4/21/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library("tidyverse")
+library("modelr")
+library(datums)
+pauperism <-
+  left_join(datums::pauperism_plu, datums::pauperism_year,
+            by = "ID") %>%
+  mutate (year = as.character(year))
+```
+
+1. Present the regressions results in a regression table
+
+```{r}
+reg_M1<- lm(paupratiodiff~ outratiodiff + year + Type, data = pauperism)
+summary (reg_M1)
+
+reg_M2<- lm (paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type), data=pauperism)
+summary (reg_M2)
+
+reg_M3<- lm(-1  + paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type), data= pauperism)
+summary (reg_M3)
+
+reg_M4<- lm (paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type), data= pauperism)
+summary (reg_M4)
+```
+
+2. Interpret the coefficients for `outratiodiff` for each model.
+M1: Hold year and Type constant, one unit increase in outratiodiff is on average in associated with 0.2343 increase in pauprism ratio difference. 
+
+3. Write the equations for each or all models, and describe the model with a sentence or two. Try to be as concise as possible. Look at recent journal articles for examples of the wording and format.
+
+M1: $y=\beta1*outratiodiff +\beta2*year+ \beta3*Type +\epsilon$
+M1 seeks to uncover the relationship between XXX and XXX, when holding year and Type constant. 
+
+M2: 
+for interaction interpretation: is one coefficient different by type
+
+4. What is the difference between *M3* and *M4*. What are the pros and cons of each parameterization?
+
+M3 and M4 only changes the intercept, because the -1 included in the formula. So the intercept in M3 is 1 lower than in M4, while all the slopes don't change. 
+
+Advantage and Disadvantage: 
+[If converting units, coefficient will change, but the substantive relationship will not change] 
+Try to think about it with ratio
+Is it a good transformation? 
+
+5. Conduct F-tests on the hypotheses
+
+```{r}
+library(car)
+linearHypothesis(reg_M4, c("outratiodiff:year","outratiodiff:TypeMixed"))
+```
+
+6. All interactions in M4 are 0
+
+```{r}
+data1 <- pauperism %>%
+  group_by(year, Type) %>%
+  filter (!is.na(Type), year %in% c("1881", "1891")) %>%
+  summarise_at (vars(outratiodiff, popratiodiff, oldratiodiff), median, na.rm = TRUE)
+M1_new <- tidy(predict(M1, newdata = data1, interval = "confidence", level = 0.95))
+dataM1 <- bind_cols (data1, M1_new)
+```
+
+7. The coefficients on outratiodiff in M4 are the same across years
+
+8. The coefficients on outratiodiff in M4 are the same across PLU Types
+
+9. The coefficients on outratiodiff in M4 are the same across PLU Types and years.
+
+10. What is the predicted value of the median PLU in each year and PLU Type for these models. Include
+confidence intervals. Plot these as point-ranges with the estimate and confidence intervals.
+
+11. As previously, calculate the predicted value of the median PLU in each year and PLU Type. But instead of confidence intervals include the prediction interval. How do the confidence and prediction intervals differ? What are their definitions?
+
+[Note: Confidence interval- for parameter estimate- esp. mean vs. prediction interval - for true value]
