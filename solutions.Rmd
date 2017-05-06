@@ -492,5 +492,254 @@ It seems to affect more to M2, as the increase rate is (0.36- 0.23)/0.23 = 0.56,
 ##### 2. What are some rationales for weighting by population? See the discussion in Solon, Haider, and Wooldridge (2013) and Angrist and Pischke (2014).
 One rationales might be to achieve more precise estimates bycorrecting for population-size-related heteroskedasticity, which might exist in the error terms. The second rationale could be to achieve consistent estimates by correcting for endogenous sampling, if the samples are not randomly sampled. The third could be to identify average partial effects in the presence of unmodeled heterogeneity of effects.
 
-### Cross-validation and Bootstrapping
-Sorry, just don't have enough time to work them out. 
+### Cross-validation 
+When using regression for causal inference, model specification and choice should largely be based on avoiding omitted variables. 
+Another criteria for selecting models is to use their fit to the data.
+But a model's fit to data should not be assessed using only the in-sample data.
+That leads to overfitting---and the best model would always be to include an indicator variable for every observation
+Instead, a model's fit to data can be assessed by using its out-of-sample fit.
+One way to estimate the *expected* fit of a model to *new* data is cross-validation.
+
+We want to compare the predictive performance of the following models
+```{r}
+mod_formulas <- 
+  list(
+    m0 = paupratiodiff ~ 1,
+    m1 = paupratiodiff ~ year + Type,    
+    m2 = paupratiodiff ~ outratiodiff + year + Type,
+    m3 = paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type),
+    m4 = -1  + paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type),
+    m5 = paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * year * Type
+  )
+```
+
+Let's split the data into 10 (train/test) folds for cross-validation,
+```{r}
+pauperism_nonmiss <- 
+  pauperism %>%
+  filter(year %in% c(1881, 1891)) %>%
+  select(paupratiodiff, outratiodiff, popratiodiff, oldratiodiff, year, Type, Region, ID) %>%
+  tidyr::drop_na()
+pauperism_10folds <-
+  pauperism_nonmiss %>%
+  resamplr::crossv_kfold(10)
+```
+
+For each model formula `f`, training data set `train`, and test data set, `test`, 
+run the model specified by `f` on `train`, and predict new observations in `test`, and calculate the RMSE from the residuals
+```{r}
+mod_rmse_fold <- function(f, train, test) {
+  fit <- lm(f, data = as.data.frame(train))
+  test_data <- as.data.frame(test)
+  err <- test_data$paupratiodiff - predict(fit, newdata = test_data)
+  sqrt(mean(err ^ 2))
+}
+```
+E.g. for one fold and formula,
+```{r}
+mod_rmse_fold(mod_formulas[[1]], pauperism_10folds$train[[1]],
+              pauperism_10folds$test[[1]])
+```
+
+Now write a function that will calculate the average RMSE across folds for a formula and a cross-validation data frame with `train` and `test` list-columns:
+```{r}
+mod_rmse <- function(f, data) {
+  map2_dbl(data$train, data$test, 
+           function(train, test) {
+             mod_rmse_fold(f, train, test)
+           }) %>%
+    mean()
+}
+```
+
+```{r}
+mod_rmse(mod_formulas[[1]], pauperism_10folds)
+```
+
+Finall, we want to run `mod_rmse` for each formula in `mod_formulas`.
+It will be easiest to store this in a data frame:
+```{r}
+cv_results <- tibble(
+  model_formula = mod_formulas,
+  .id = names(mod_formulas),
+  # Formula as a string
+  .name = map(model_formula,
+              function(x) gsub(" +", " ", paste0(deparse(x), collapse = "")))
+)
+```
+Use `map` to run `mod_rmse` for each model and save it as a list frame in
+the data frame,
+```{r}
+cv_results <-
+  mutate(cv_results,
+         cv10_rmse = map(model_formula, mod_rmse, data = pauperism_10folds))
+```
+
+In the case of linear regression, the MSE of the Leave-one-out (LOO) ($n$-fold) cross-validation can be analytically calculated without having to run $n$ regressions.
+```{r}
+loocv <- function(x) {
+  mean((residuals(x) / (1 - hatvalues(x))) ^ 2)
+}
+```
+
+We 
+```{r}
+cv_results <- 
+  mutate(cv_results, 
+         rmse_loo = map(mod_formulas, function(f) sqrt(loocv(lm(f, data = pauperism_nonmiss)))))
+```
+
+
+1. In the 10-fold cross validation, which model has the best out of sample prediction? 
+```{r}
+cv_results[["cv10_rmse"]]
+```
+M4 has the smallest RMSE hence the best out of sample prediction- k-fold. 
+
+2. Using the LOO-CV cross-validation, which model has the best out of sample prediction? 
+```{r}
+cv_results[["rmse_loo"]]
+```
+M4 still has the smallest RMSE hence the best out of sample prediction- LOO. 
+
+3. Does the prediction metric (RMSE) and prediction task---predicting individual PLUs from other PLUs---make sense? Can you think of others that you would prefer?
+Make sense, but how to explain why it makes sense? 
+
+Other ways: maybe compare the predicted value with the true value (the one left out)? 
+ 
+
+### Bootstrapping
+
+Estimate the 95% confidence intervals of model with simple non-parametric bootstrapped standard errors. The non-parametric bootstrap works as follows:
+
+Let $\hat\theta$ be the estimate of a statistic. To calculate bootstrapped standard errors and confidence intervals use the following procedure.
+
+For samples $b = 1, ..., B$.
+
+1. Draw a sample with replacement from the data
+2. Estimate the statistic of interest and call it $\theta_b^*$.
+
+Let $\theta^* = \{\theta_1^*, \dots, \theta_B^*\}$ be the set of bootstrapped statistics.
+
+- standard error: $\hat\theta$ is $\sd(\theta^*)$.
+- confidence interval:
+
+    - normal approximation. This calculates the confidence interval as usual but uses the bootstrapped standard error instead of the classical OLS standard error: $\hat\theta \pm t_{\alpha/2,df} \cdot \sd(\theta^*)$
+    - quantiles: A 95% confidence interval uses the 2.5% and 97.5% quantiles of $\theta^*$ for its upper and lower bounds.
+
+Original model
+```{r}
+mod_formula <- paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * year * Type
+mod_orig <- lm(mod_formula, data = pauperism_nonmiss)
+```
+
+```{r}
+bs_coef_se <-
+  resamplr::bootstrap(pauperism_nonmiss, 1024) %>%
+  # extract the strap column
+  `[[`("sample") %>%
+  # run 
+  map_df(function(dat) {
+    lm(mod_formula, data = dat) %>%
+    broom::tidy() %>%
+    select(term, estimate)
+  }) %>%
+  # calculate 2.5%, 97.5% and sd of estimates
+  group_by(term) %>%
+  summarise(
+    std.error_bs = sd(estimate),
+    conf.low_bsq = quantile(estimate, 0.025),
+    conf.upp_bsq = quantile(estimate, 0.975)
+  )
+```
+
+Now compare the std.error of the original and the bootstrap for `outratiodiff`
+```{r}
+broom::tidy(mod_orig, conf.int = TRUE) %>%
+  select(term, estimate, std.error) %>%
+  filter(term == "outratiodiff") %>%
+  left_join(bs_coef_se, by = "term")
+```
+The bootstrap standard error is slightly higher.
+It is similar to the standard error generated using the heteroskedasticity consistent standard error.
+```{r}
+sqrt(sandwich::vcovHC(mod_orig)["outratiodiff", "outratiodiff"])
+```
+
+It is likely that there is correlation between the error terms of observations. At the very least, each PLU is included twice; these observations are likely correlated, so we are effectively overstating the sample size of our data. One way to account for that is to resample "PLUs", not PLU-years.This cluster-bootstrap will resample each PLU (and all its observations), rather than resampling the observations themselves.
+```{r}
+pauperism_nonmiss %>%
+  group_by(ID) %>%
+  resamplr::bootstrap(1024) %>%
+  # extract the strap column
+  `[[`("sample") %>%
+  # run 
+  map_df(function(dat) {
+    lm(mod_formula, data = dat) %>%
+    broom::tidy() %>%
+    select(term, estimate)
+  }) %>%
+  # calculate 2.5%, 97.5% and sd of estimates
+  group_by(term) %>%
+  summarise(
+    std.error_bs = sd(estimate),
+    conf.low_bsq = quantile(estimate, 0.025),
+    conf.upp_bsq = quantile(estimate, 0.975)
+  ) %>%
+  filter(term == "outratiodiff")
+```
+However, this yields a standard error not much different than the Robust standard error.
+
+1. Try bootstrapping "Region" and "BoothGroup". Do either of these make much difference in the standard errors.
+
+```{r}
+pauperism_bst<- 
+  pauperism %>%
+  filter(year %in% c(1881, 1891)) %>%
+  select(paupratiodiff, outratiodiff, popratiodiff, oldratiodiff, year, Type, Region, ID, BoothGroup) %>%
+  tidyr::drop_na()
+````
+
+```{r}
+pauperism_nonmiss %>%
+  group_by(Region) %>%
+  resamplr::bootstrap(1024) %>%
+  # extract the strap column
+  `[[`("sample") %>%
+  # run 
+  map_df(function(dat) {
+    lm(mod_formula, data = dat) %>%
+    broom::tidy() %>%
+    select(term, estimate)
+  }) %>%
+  # calculate 2.5%, 97.5% and sd of estimates
+  group_by(term) %>%
+  summarise(
+    std.error_bs = sd(estimate),
+    conf.low_bsq = quantile(estimate, 0.025),
+    conf.upp_bsq = quantile(estimate, 0.975)
+  ) %>%
+  filter(term == "outratiodiff")
+```
+
+```{r}
+pauperism_bst %>%
+  group_by(BoothGroup) %>%
+  resamplr::bootstrap(1024) %>%
+  # extract the strap column
+  `[[`("sample") %>%
+  # run 
+  map_df(function(dat) {
+    lm(mod_formula, data = dat) %>%
+    broom::tidy() %>%
+    select(term, estimate)
+  }) %>%
+  # calculate 2.5%, 97.5% and sd of estimates
+  group_by(term) %>%
+  summarise(
+    std.error_bs = sd(estimate),
+    conf.low_bsq = quantile(estimate, 0.025),
+    conf.upp_bsq = quantile(estimate, 0.975)
+  ) %>%
+  filter(term == "outratiodiff")
+```
