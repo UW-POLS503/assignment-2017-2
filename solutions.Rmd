@@ -457,15 +457,54 @@ The standard errors increase substantially.
 
 1. Run the model with interactions for all years and types
 ```{r}
-MR1 <- lm(pauper2 ~ (outratio + Popn2 + Prop65) * year * Type - 1, data = pauperism)
+MR1 <- lm(pauper2 ~ (outratio + Popn2 + Prop65) * year * Type, data = pauperism)
 ```
 2. For each subset of year and type run the regression
 ```{r}
 
+year1871 <- subset(pauperism, year==1871)
+year1881 <- subset(pauperism, year==1881)
+year1891 <- subset(pauperism, year==1891)
+
+TypeMet <- subset(pauperism, Type=="Metropolitan")
+TypeMix <- subset(pauperism, Type=="Mixed")
+TypeRur <- subset(pauperism, Type=="Rural")
+TypeUrb <- subset(pauperism, Type=="Urban")
+
+year1871reg <- lm(pauper2 ~ (outratio + Popn2 + Prop65) * Type, data = year1871)
+year1881reg <- lm(pauper2 ~ (outratio + Popn2 + Prop65) * Type, data = year1881)
+year1891reg <- lm(pauper2 ~ (outratio + Popn2 + Prop65) * Type, data = year1891)
+
+TypeMetreg <- lm(pauper2 ~ (outratio + Popn2 + Prop65) * year, data = TypeMet)
+TypeMixreg <- lm(pauper2 ~ (outratio + Popn2 + Prop65) * year, data = TypeMix)
+TypeRurreg <- lm(pauper2 ~ (outratio + Popn2 + Prop65) * year, data = TypeRur)
+TypeUrbreg <- lm(pauper2 ~ (outratio + Popn2 + Prop65) * year, data = TypeUrb)
 ```
 
 3. Compare the coefficients, standard errors, and regression standard errors in these regresions.
+```{r}
+MRYearCoef <- cbind(year1871reg$coefficients, year1881reg$coefficients, year1891reg$coefficients)
+MRYearSE <- cbind(summary(year1871reg)$coef[,2], summary(year1881reg)$coef[,2], summary(year1891reg)$coef[,2])
+MRYearSER <- cbind(summary(year1871reg)$sigma, summary(year1881reg)$sigma, summary(year1891reg)$sigma)
 
+
+MRTypeCoef <- cbind(TypeMetreg$coefficients, TypeMixreg$coefficients, TypeRurreg$coefficients, TypeUrbreg$coefficients)
+MRTypeSE <- cbind(summary(TypeMetreg)$coef[,2], summary(TypeMixreg)$coef[,2], summary(TypeMixreg)$coef[,2], summary(TypeUrbreg)$coef[,2])
+MRTypeSER <- cbind(summary(TypeMetreg)$sigma, summary(TypeMixreg)$sigma, summary(TypeRurreg)$sigma, summary(TypeUrbreg)$sigma)
+
+colnames(MRYearCoef) <- colnames(MRYearSER) <- colnames(MRYearSE) <- c("1871", "1881", "1891")
+colnames(MRTypeCoef) <- colnames(MRTypeSER) <- colnames(MRTypeSE) <- c("Metropolitan", "Mixed", "Rural", "Urban")
+ 
+MRYearCoef
+MRYearSE
+MRYearSER
+
+MRTypeCoef
+MRTypeSE
+MRTypeSER
+```
+
+The coefficients vary quite a lot between years and union type. The coefficients on outratio are in the same direction across years, but some of the other coefficients see their sign flipped depending on the year and type. The standard errors also vary substantially. The standard error of the regression appears to be greatest in the 1871 regression and in the Metropolitan regression.
 
 To run the multiple regressions, save models as a list column mod, then save the results of glance and tidy as list columns:
 ```{r}
@@ -494,11 +533,16 @@ mutate(sigma = map_dbl(mod_glance, function(x) x$sigma)) %>% select(year, Type, 
 
 ```{r}
 WRM2 <- lm(paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type), data=pauperism, weights=Popn)
+summary(WRM2)
 
 WRM3 <- lm(-1 + paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type), data=pauperism, weights=Popn)
+summary(WRM3)
 ```
+The coefficients on outratiodiff and the interactions are interpreted in the same way as in previous sections. In this case, it is 0.36 in the weighted version of model 2, and it is 0.72 in the weighted version of model 3. The coefficients vary slightly compared to the unweighted regressions, but they are in direction as these regressions. The weights appear to affect the results of M3 more than M2.
 
 2. What are some rationales for weighting by population? See the discussion in Solon, Haider, and Wooldridge (2013) and Angrist and Pischke (2014).
+
+A rationale for using weights in linear regression is to address heteroskedasticity and the bias that arises from using conventional standard errors. Another reason to include weights is to address endogenous sampling, which may allow us to produce more consistent estimates. 
 
 # Cross-Validation
 
@@ -590,10 +634,13 @@ cv_results <-
 ```
 1. In the 10-fold cross validation, which model has the best out of sample prediction?
 
-2. Using the LOO-CV cross-validation, which model has the best
+Model 6 has the best out of sample prediction.
 
-3. Does the prediction metric (RMSE) and prediction task—predicting individual PLUs from other
-PLUs—make sense? Can you think of others that you would prefer?
+2. Using the LOO-CV cross-validation, which model has the best?
+
+Model 6 again has the best out of sample prediction.
+
+3. Does the prediction metric (RMSE) and prediction task—predicting individual PLUs from other PLUs—make sense? Can you think of others that you would prefer?
 
 # Bootstrapping
 
@@ -662,6 +709,6 @@ pauperism_nonmiss %>%
 
 ```
 
-However, this yields a standard error not much different than the Robust standard error.
+However, this yields a standard error not much different than the Robust standard error. Try bootstrapping "Region" and "BoothGroup". Do either of these make much difference in the standard errors.
 
-Try bootstrapping "Region" and "BoothGroup". Do either of these make much difference in the standard errors.
+They do not produce a large difference.

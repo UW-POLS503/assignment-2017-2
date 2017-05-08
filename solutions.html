@@ -967,11 +967,113 @@ M2SE</code></pre>
 <ol style="list-style-type: decimal">
 <li>Run the model with interactions for all years and types</li>
 </ol>
-<pre class="r"><code>MR1 &lt;- lm(pauper2 ~ (outratio + Popn2 + Prop65) * year * Type - 1, data = pauperism)</code></pre>
+<pre class="r"><code>MR1 &lt;- lm(pauper2 ~ (outratio + Popn2 + Prop65) * year * Type, data = pauperism)</code></pre>
 <ol start="2" style="list-style-type: decimal">
-<li><p>For each subset of year and type run the regression</p></li>
-<li><p>Compare the coefficients, standard errors, and regression standard errors in these regresions.</p></li>
+<li>For each subset of year and type run the regression</li>
 </ol>
+<pre class="r"><code>year1871 &lt;- subset(pauperism, year==1871)
+year1881 &lt;- subset(pauperism, year==1881)
+year1891 &lt;- subset(pauperism, year==1891)
+
+TypeMet &lt;- subset(pauperism, Type==&quot;Metropolitan&quot;)
+TypeMix &lt;- subset(pauperism, Type==&quot;Mixed&quot;)
+TypeRur &lt;- subset(pauperism, Type==&quot;Rural&quot;)
+TypeUrb &lt;- subset(pauperism, Type==&quot;Urban&quot;)
+
+year1871reg &lt;- lm(pauper2 ~ (outratio + Popn2 + Prop65) * Type, data = year1871)
+year1881reg &lt;- lm(pauper2 ~ (outratio + Popn2 + Prop65) * Type, data = year1881)
+year1891reg &lt;- lm(pauper2 ~ (outratio + Popn2 + Prop65) * Type, data = year1891)
+
+TypeMetreg &lt;- lm(pauper2 ~ (outratio + Popn2 + Prop65) * year, data = TypeMet)
+TypeMixreg &lt;- lm(pauper2 ~ (outratio + Popn2 + Prop65) * year, data = TypeMix)
+TypeRurreg &lt;- lm(pauper2 ~ (outratio + Popn2 + Prop65) * year, data = TypeRur)
+TypeUrbreg &lt;- lm(pauper2 ~ (outratio + Popn2 + Prop65) * year, data = TypeUrb)</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li>Compare the coefficients, standard errors, and regression standard errors in these regresions.</li>
+</ol>
+<pre class="r"><code>MRYearCoef &lt;- cbind(year1871reg$coefficients, year1881reg$coefficients, year1891reg$coefficients)
+MRYearSE &lt;- cbind(summary(year1871reg)$coef[,2], summary(year1881reg)$coef[,2], summary(year1891reg)$coef[,2])
+MRYearSER &lt;- cbind(summary(year1871reg)$sigma, summary(year1881reg)$sigma, summary(year1891reg)$sigma)
+
+
+MRTypeCoef &lt;- cbind(TypeMetreg$coefficients, TypeMixreg$coefficients, TypeRurreg$coefficients, TypeUrbreg$coefficients)
+MRTypeSE &lt;- cbind(summary(TypeMetreg)$coef[,2], summary(TypeMixreg)$coef[,2], summary(TypeMixreg)$coef[,2], summary(TypeUrbreg)$coef[,2])
+MRTypeSER &lt;- cbind(summary(TypeMetreg)$sigma, summary(TypeMixreg)$sigma, summary(TypeRurreg)$sigma, summary(TypeUrbreg)$sigma)
+
+colnames(MRYearCoef) &lt;- colnames(MRYearSER) &lt;- colnames(MRYearSE) &lt;- c(&quot;1871&quot;, &quot;1881&quot;, &quot;1891&quot;)
+colnames(MRTypeCoef) &lt;- colnames(MRTypeSER) &lt;- colnames(MRTypeSE) &lt;- c(&quot;Metropolitan&quot;, &quot;Mixed&quot;, &quot;Rural&quot;, &quot;Urban&quot;)
+ 
+MRYearCoef</code></pre>
+<pre><code>##                             1871          1881          1891
+## (Intercept)         5.955222e-02 -9.485841e-06  3.542339e-02
+## outratio            5.708958e-04  6.087243e-03  3.426529e-03
+## Popn2              -5.025627e-08 -7.788410e-08 -7.787166e-08
+## Prop65             -1.801554e-01  7.968693e-01 -4.410046e-02
+## TypeMixed          -4.853681e-02 -1.813488e-04 -3.224347e-02
+## TypeRural          -6.334421e-02 -1.982108e-02 -5.191437e-02
+## TypeUrban          -6.401214e-02  9.582499e-03 -3.055263e-02
+## outratio:TypeMixed  2.857434e-04 -4.463557e-03 -2.291925e-03
+## outratio:TypeRural  4.607440e-04 -4.359822e-03 -2.085965e-03
+## outratio:TypeUrban  9.951729e-04 -4.807726e-03 -2.565586e-03
+## Popn2:TypeMixed    -3.793316e-07 -2.472331e-08 -6.481848e-09
+## Popn2:TypeRural     6.734344e-08  1.621662e-07  1.416875e-07
+## Popn2:TypeUrban     9.575764e-08  7.364546e-08  6.201632e-08
+## Prop65:TypeMixed    9.930927e-01 -2.992785e-01  4.263331e-01
+## Prop65:TypeRural    9.762405e-01 -1.362207e-01  5.892265e-01
+## Prop65:TypeUrban    9.254490e-01 -5.034570e-01  4.159870e-01</code></pre>
+<pre class="r"><code>MRYearSE</code></pre>
+<pre><code>##                            1871         1881         1891
+## (Intercept)        2.810264e-02 1.474826e-02 1.224330e-02
+## outratio           1.113581e-03 2.588662e-03 1.986885e-03
+## Popn2              6.251426e-08 2.937944e-08 2.150094e-08
+## Prop65             7.162701e-01 3.813262e-01 2.927003e-01
+## TypeMixed          2.917344e-02 1.537743e-02 1.288674e-02
+## TypeRural          2.995656e-02 1.580965e-02 1.319209e-02
+## TypeUrban          3.032864e-02 1.590150e-02 1.331338e-02
+## outratio:TypeMixed 1.159593e-03 2.603880e-03 2.001438e-03
+## outratio:TypeRural 1.161703e-03 2.599877e-03 1.996501e-03
+## outratio:TypeUrban 1.226815e-03 2.635696e-03 2.029624e-03
+## Popn2:TypeMixed    1.156004e-07 5.489842e-08 4.330232e-08
+## Popn2:TypeRural    1.192247e-07 5.824305e-08 4.539222e-08
+## Popn2:TypeUrban    7.546776e-08 3.504184e-08 2.614537e-08
+## Prop65:TypeMixed   7.249937e-01 3.860684e-01 2.973013e-01
+## Prop65:TypeRural   7.297631e-01 3.888020e-01 2.991019e-01
+## Prop65:TypeUrban   7.415223e-01 3.946738e-01 3.052524e-01</code></pre>
+<pre class="r"><code>MRYearSER</code></pre>
+<pre><code>##            1871        1881        1891
+## [1,] 0.01776049 0.009846049 0.008824059</code></pre>
+<pre class="r"><code>MRTypeCoef</code></pre>
+<pre><code>##                    Metropolitan         Mixed         Rural         Urban
+## (Intercept)        5.955222e-02  1.101541e-02 -3.791996e-03 -4.459922e-03
+## outratio           5.708958e-04  8.566393e-04  1.031640e-03  1.566069e-03
+## Popn2             -5.025627e-08 -4.295879e-07  1.708717e-08  4.550136e-08
+## Prop65            -1.801554e-01  8.129373e-01  7.960851e-01  7.452936e-01
+## year1881          -5.956170e-02 -1.120624e-02 -1.603857e-02  1.403294e-02
+## year1891          -2.412883e-02 -7.835490e-03 -1.269898e-02  9.330675e-03
+## outratio:year1881  5.516347e-03  7.670469e-04  6.957808e-04 -2.865514e-04
+## outratio:year1891  2.855633e-03  2.779650e-04  3.089235e-04 -7.051256e-04
+## Popn2:year1881    -2.762783e-08  3.269805e-07  6.719497e-08 -4.974000e-08
+## Popn2:year1891    -2.761539e-08  3.452344e-07  4.672866e-08 -6.135670e-08
+## Prop65:year1881    9.770247e-01 -3.153464e-01 -1.354364e-01 -4.518812e-01
+## Prop65:year1891    1.360550e-01 -4.307047e-01 -2.509590e-01 -3.734071e-01</code></pre>
+<pre class="r"><code>MRTypeSE</code></pre>
+<pre><code>##                   Metropolitan        Mixed        Rural        Urban
+## (Intercept)       2.283956e-02 4.913295e-03 4.913295e-03 8.639477e-03
+## outratio          9.050288e-04 2.029013e-04 2.029013e-04 3.899730e-04
+## Popn2             5.080656e-08 6.100572e-08 6.100572e-08 3.202631e-08
+## Prop65            5.821267e-01 7.034769e-02 7.034769e-02 1.453448e-01
+## year1881          3.145012e-02 6.958073e-03 6.958073e-03 1.185915e-02
+## year1891          3.037670e-02 7.065650e-03 7.065650e-03 1.175658e-02
+## outratio:year1881 3.901398e-03 3.773159e-04 3.773159e-04 7.815932e-04
+## outratio:year1891 3.373777e-03 3.656822e-04 3.656822e-04 7.423949e-04
+## Popn2:year1881    6.660593e-08 8.047406e-08 8.047406e-08 4.131342e-08
+## Popn2:year1891    6.179243e-08 7.729460e-08 7.729460e-08 3.924449e-08
+## Prop65:year1881   8.070804e-01 9.802772e-02 9.802772e-02 2.011593e-01
+## Prop65:year1891   7.537353e-01 9.631845e-02 9.631845e-02 1.964018e-01</code></pre>
+<pre class="r"><code>MRTypeSER</code></pre>
+<pre><code>##      Metropolitan      Mixed      Rural      Urban
+## [1,]   0.01443429 0.01114257 0.01361958 0.01345417</code></pre>
+<p>The coefficients vary quite a lot between years and union type. The coefficients on outratio are in the same direction across years, but some of the other coefficients see their sign flipped depending on the year and type. The standard errors also vary substantially. The standard error of the regression appears to be greatest in the 1871 regression and in the Metropolitan regression.</p>
 <p>To run the multiple regressions, save models as a list column mod, then save the results of glance and tidy as list columns:</p>
 <pre class="r"><code>all_interact &lt;-
 crossing(Type = pauperism$Type, year = c(1881, 1891)) %&gt;% 
@@ -1007,11 +1109,86 @@ mutate(sigma = map_dbl(mod_glance, function(x) x$sigma)) %&gt;% select(year, Typ
 <li>Run M2 and M3 as weighted regressions, weighted by the population (Popn) and interpret the coefficients on outratiodiff and interactions. Informally assess the extent to which the coefficients are different. Which one does it seem to affect more?</li>
 </ol>
 <pre class="r"><code>WRM2 &lt;- lm(paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type), data=pauperism, weights=Popn)
-
-WRM3 &lt;- lm(-1 + paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type), data=pauperism, weights=Popn)</code></pre>
+summary(WRM2)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * 
+##     (year + Type), data = pauperism, weights = Popn)
+## 
+## Weighted Residuals:
+##    Min     1Q Median     3Q    Max 
+## -33598  -1934   -272   1477  61524 
+## 
+## Coefficients:
+##                         Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)            -27.68600   24.91558  -1.111 0.266715    
+## outratiodiff             0.36447    0.01908  19.105  &lt; 2e-16 ***
+## popratiodiff            -0.19607    0.06021  -3.256 0.001161 ** 
+## oldratiodiff             1.01436    0.20524   4.942 8.85e-07 ***
+## year1891               -23.17532   17.39123  -1.333 0.182928    
+## TypeMixed               43.71232   30.20646   1.447 0.148133    
+## TypeRural                6.50491   48.32165   0.135 0.892938    
+## TypeUrban               85.92332   25.18714   3.411 0.000668 ***
+## popratiodiff:year1891   -0.17776    0.03867  -4.597 4.75e-06 ***
+## popratiodiff:TypeMixed   0.26218    0.10481   2.501 0.012509 *  
+## popratiodiff:TypeRural   0.50656    0.23609   2.146 0.032113 *  
+## popratiodiff:TypeUrban   0.09231    0.05909   1.562 0.118527    
+## oldratiodiff:year1891    0.43992    0.15330   2.870 0.004184 ** 
+## oldratiodiff:TypeMixed  -0.79586    0.22624  -3.518 0.000452 ***
+## oldratiodiff:TypeRural  -0.70833    0.30819  -2.298 0.021716 *  
+## oldratiodiff:TypeUrban  -0.96285    0.21204  -4.541 6.18e-06 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 4288 on 1164 degrees of freedom
+##   (617 observations deleted due to missingness)
+## Multiple R-squared:  0.4573, Adjusted R-squared:  0.4503 
+## F-statistic: 65.39 on 15 and 1164 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>WRM3 &lt;- lm(-1 + paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type), data=pauperism, weights=Popn)
+summary(WRM3)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = -1 + paupratiodiff ~ (outratiodiff + popratiodiff + 
+##     oldratiodiff) * (year + Type), data = pauperism, weights = Popn)
+## 
+## Weighted Residuals:
+##    Min     1Q Median     3Q    Max 
+## -32785  -1959   -272   1498  60996 
+## 
+## Coefficients:
+##                         Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)             23.76032   25.80280   0.921 0.357324    
+## outratiodiff             0.71677    0.04453  16.096  &lt; 2e-16 ***
+## popratiodiff            -0.23796    0.05899  -4.034 5.84e-05 ***
+## oldratiodiff             0.37794    0.22091   1.711 0.087375 .  
+## year1891                 2.33897   17.13905   0.136 0.891473    
+## TypeMixed              -27.64455   31.11298  -0.889 0.374445    
+## TypeRural              -82.62510   47.98946  -1.722 0.085384 .  
+## TypeUrban               30.10313   26.65563   1.129 0.258990    
+## outratiodiff:year1891   -0.31426    0.03823  -8.219 5.43e-16 ***
+## outratiodiff:TypeMixed  -0.22858    0.04805  -4.757 2.22e-06 ***
+## outratiodiff:TypeRural  -0.18221    0.05126  -3.554 0.000394 ***
+## outratiodiff:TypeUrban  -0.11694    0.04562  -2.563 0.010497 *  
+## popratiodiff:year1891   -0.16940    0.03738  -4.531 6.47e-06 ***
+## popratiodiff:TypeMixed   0.32128    0.10177   3.157 0.001636 ** 
+## popratiodiff:TypeRural   0.66490    0.22772   2.920 0.003569 ** 
+## popratiodiff:TypeUrban   0.11662    0.05864   1.989 0.046970 *  
+## oldratiodiff:year1891    0.41093    0.15028   2.734 0.006344 ** 
+## oldratiodiff:TypeMixed  -0.04938    0.24762  -0.199 0.841959    
+## oldratiodiff:TypeRural   0.07850    0.32105   0.245 0.806887    
+## oldratiodiff:TypeUrban  -0.42502    0.23567  -1.803 0.071574 .  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 4119 on 1160 degrees of freedom
+##   (617 observations deleted due to missingness)
+## Multiple R-squared:  0.501,  Adjusted R-squared:  0.4928 
+## F-statistic: 61.29 on 19 and 1160 DF,  p-value: &lt; 2.2e-16</code></pre>
+<p>The coefficients on outratiodiff and the interactions are interpreted in the same way as in previous sections. In this case, it is 0.36 in the weighted version of model 2, and it is 0.72 in the weighted version of model 3. The coefficients vary slightly compared to the unweighted regressions, but they are in direction as these regressions. The weights appear to affect the results of M3 more than M2.</p>
 <ol start="2" style="list-style-type: decimal">
 <li>What are some rationales for weighting by population? See the discussion in Solon, Haider, and Wooldridge (2013) and Angrist and Pischke (2014).</li>
 </ol>
+<p>A rationale for using weights in linear regression is to address heteroskedasticity and the bias that arises from using conventional standard errors. Another reason to include weights is to address endogenous sampling, which may allow us to produce more consistent estimates.</p>
 </div>
 <div id="cross-validation" class="section level1">
 <h1>Cross-Validation</h1>
@@ -1043,7 +1220,7 @@ pauperism_10folds &lt;-
 <p>E.g. for one fold and formula,</p>
 <pre class="r"><code>mod_rmse_fold(mod_formulas[[1]], pauperism_10folds$train[[1]],
               pauperism_10folds$test[[1]])</code></pre>
-<pre><code>## [1] 26.13193</code></pre>
+<pre><code>## [1] 24.14012</code></pre>
 <p>Now write a function that will calculate the average RMSE across folds for a formula and a cross-validation data frame with train and test list-columns:</p>
 <pre class="r"><code>mod_rmse &lt;- function(f, data) {
   map2_dbl(data$train, data$test, 
@@ -1073,9 +1250,15 @@ pauperism_10folds &lt;-
   mutate(cv_results, 
          rmse_loo = map(mod_formulas, function(f) sqrt(loocv(lm(f, data = pauperism_nonmiss)))))</code></pre>
 <ol style="list-style-type: decimal">
-<li><p>In the 10-fold cross validation, which model has the best out of sample prediction?</p></li>
-<li><p>Using the LOO-CV cross-validation, which model has the best</p></li>
-<li><p>Does the prediction metric (RMSE) and prediction task—predicting individual PLUs from other PLUs—make sense? Can you think of others that you would prefer?</p></li>
+<li>In the 10-fold cross validation, which model has the best out of sample prediction?</li>
+</ol>
+<p>Model 6 has the best out of sample prediction.</p>
+<ol start="2" style="list-style-type: decimal">
+<li>Using the LOO-CV cross-validation, which model has the best?</li>
+</ol>
+<p>Model 6 again has the best out of sample prediction.</p>
+<ol start="3" style="list-style-type: decimal">
+<li>Does the prediction metric (RMSE) and prediction task—predicting individual PLUs from other PLUs—make sense? Can you think of others that you would prefer?</li>
 </ol>
 </div>
 <div id="bootstrapping" class="section level1">
@@ -1106,7 +1289,7 @@ bs_coef_se &lt;-
   filter(term == &quot;outratiodiff&quot;) %&gt;%
   left_join(bs_coef_se, by = &quot;term&quot;)</code></pre>
 <pre><code>##           term  estimate  std.error std.error_bs conf.low_bsq
-## 1 outratiodiff 0.2274375 0.01433042   0.01893467    0.2702318</code></pre>
+## 1 outratiodiff 0.2274375 0.01433042   0.02035589    0.2703439</code></pre>
 <p>The bootstrap standard error is slightly higher. It is similar to the standard error generated using the heteroskedasticity consistent standard error.</p>
 <pre class="r"><code>sqrt(sandwich::vcovHC(mod_orig)[&quot;outratiodiff&quot;, &quot;outratiodiff&quot;])</code></pre>
 <pre><code>## [1] 0.01985823</code></pre>
@@ -1133,9 +1316,9 @@ bs_coef_se &lt;-
 <pre><code>## # A tibble: 1 × 3
 ##           term std.error_bs conf.low_bsq
 ##          &lt;chr&gt;        &lt;dbl&gt;        &lt;dbl&gt;
-## 1 outratiodiff   0.01892067    0.2691079</code></pre>
-<p>However, this yields a standard error not much different than the Robust standard error.</p>
-<p>Try bootstrapping “Region” and “BoothGroup”. Do either of these make much difference in the standard errors.</p>
+## 1 outratiodiff    0.0186477    0.2676492</code></pre>
+<p>However, this yields a standard error not much different than the Robust standard error. Try bootstrapping “Region” and “BoothGroup”. Do either of these make much difference in the standard errors.</p>
+<p>They do not produce a large difference.</p>
 </div>
 
 
