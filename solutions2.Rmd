@@ -3,8 +3,8 @@ title: "Solutions Parr"
 author: "Christianna Parr"
 date: "April 21, 2017"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -74,6 +74,17 @@ M4: Holding all else constant, on average when there is an outratio difference o
 
 ### 3. Write the equations for each or all models, and describe the model with a sentence or two. Try to be as concise as possible. Look at recent journal articles for examples of the wording and format.
 
+
+###Correction for writing equations incorrectly:
+###M1:
+$$\text{paupratiodiff}_{it} = \beta_{1}\text{outratiodiff}_{it} + \alpha_{type} + \rho_{t} + e_{it}$$
+###M2:
+$$\text{paupratiodiff}_{it} = \beta_{1}\text{outratiodiff}_{it} + \beta_{2}\text{popratiodiff}_{it} + \beta_{3}\text{oldratiodiff}_{it}+{\bf\it{\Gamma}}\Big ((\text{popratiodiff}_{it} + \text{oldratiodiff}_{it}) \times (\alpha_{type} + \rho_{t})\Big) + \alpha_{type} + \rho_{t} + e_{it}$$
+###M3:
+$$\text{paupratiodiff}_{it} = \beta_{1}\text{outratiodiff}_{it} + \beta_{2}\text{popratiodiff}_{it} + \beta_{3}\text{oldratiodiff}_{it} + {\bf\it{\Gamma}}\Big ((\text{outratiodiff}_{it} + \text{popratiodiff}_{it} + \text{oldratiodiff}_{it}) \times (\alpha_{type} + \rho_{t})\Big) + \alpha_{type} + \rho_{t} + e_{it}$$
+
+  
+##Previous Answers:
 M1:
 $$
 paupratiodiff = \beta_0\ + \beta_1outratiodiff\ + \beta_2year\ + \beta_3type\  + \epsilon\
