@@ -13,6 +13,10 @@ output:
 bibliography: assignment2.bib
 ---
 
+# Questions
+1. What is the rho t variable in the question 1c equations?
+2. 
+
 This assignment works through an example in @Yule1899a:
 
 @Yule1899a is a published example multiple regression analysis in its modern form.[^yule]
@@ -139,32 +143,53 @@ Citation: Delamou, Alexandre, et al. "Effect of Ebola virus disease on maternal 
 APA	
 
 
-
+### Original Answer
 The M1 equation is:
 $$
 paupratiodiff_i = B_0 + B_1outratiodiff_i + year1891_i + TypeMixed_i + TypeRural_i + TypeUrban_i + \epsilon_i
 $$
 where $$B_0$$ is the intercept, estimating the paupratiodiff when all independent variables are 0, $$B_1outratiodiff_i$$ is the estimated change in paupratiodiff associated with a one unit increase in outratiodiff, and $$year1891_i$$ is a dummy variable associated with the year to which each data point applies. The Type variables are dummy variables associated with the region in which each respondent lives (the reference categoryis the Metropolitan PLU), and $$\epsilon$$ is the error term, denoting the inability of our conditional expectation function to fully explain Y.
 
+### Corrected Answer
+$$\text{paupratiodiff}_{it} = \beta_{1}\text{outratiodiff}_{it} + \alpha_{type} + \alpha_{type} +\rho_{t} + e_{it}$$
+where $$B_1outratiodiff_i$$ is the estimated change in paupratiodiff associated with a one unit increase in outratiodiff, and $$\alpha_{type}$$ is a dummy variable associated with the year to which each data point applies. The Type variables are dummy variables associated with the region in which each respondent lives (the reference categoryis the Metropolitan PLU), and $$\epsilon_{it}$$ is the error term, denoting the inability of our conditional expectation function to fully explain Y.
 
 
+### Original Answer
 The M2 equation is:
 $$
 paupratiodiff_i = B_0 + B_1outratiodiff_i + popratiodiff_i + oldratiodiff_i + year1891_i + TypeMixed_i + TypeRural_i + TypeUrban_i + popratiodiff*year + popratiodiff*TypeMixed + popratiodiff*TypeRural + popratiodiff*TypeUrban + oldratiodiff*year + oldratiodiff*TypeMixed + oldratiodiff*TypeRural + oldratiodiff*TypeUrban + \epsilon
 $$
-where $$B_0$$ is the intercept, estimating the paupratiodiff when all independent variables are 0, $$B_1outratiodiff_i$$ is the estimated change in paupratiodiff associated with a one unit increase in outratiodiff, and $$year1891_i$$ is a dummy variable associated with the year to which each data point applies. The Type variables are dummy variables associated with the region in which each respondent lives (the reference categoryis the Metropolitan PLU), and $$\epsilon$$ is the error term, denoting the inability of our conditional expectation function to fully explain Y.There are also interaction terms associated with this model -- popratiodiff x year, oldratiodiff x year, popratiodiff x Type, and oldratiodiff x Type. 
+where $$B_0$$ is the intercept, estimating the paupratiodiff when all independent variables are 0, $$B_1outratiodiff_i$$ is the estimated change in paupratiodiff associated with a one unit increase in outratiodiff, and $$year1891_i$$ is a dummy variable associated with the year to which each data point applies. The Type variables are dummy variables associated with the region in which each respondent lives (the reference categoryis the Metropolitan PLU), and $$\epsilon$$ is the error term, denoting the inability of our conditional expectation function to fully explain Y.There are also interaction terms associated with this model -- popratiodiff x year, oldratiodiff x year, popratiodiff x Type, and oldratiodiff x Type.
+
+
+### Corrected Answer
+$$
+\text{paupratiodiff}_{it} = \beta_{1}\text{outratiodiff}_{it} + \beta_{2}\text{popratiodiff}_{it} + \beta_{3}\text{oldratiodiff}_{it}+{\bf\it{\Gamma}}\Big ((\text{popratiodiff}_{it} + \text{oldratiodiff}_{it}) \times (\alpha_{type} + \rho_{t})\Big) + \alpha_{type} + \rho_{t} + e_{it}
+$$
+where $$B_1outratiodiff_i$$ is the estimated change in paupratiodiff associated with a one unit increase in outratiodiff, and $$\alpha_{year}$$ is a dummy variable associated with the year to which each data point applies. The Type variables are dummy variables associated with the region in which each respondent lives (the reference categoryis the Metropolitan PLU), and $$\epsilon$$ is the error term, denoting the inability of our conditional expectation function to fully explain Y.There are also interaction terms associated with this model -- popratiodiff x year, oldratiodiff x year, popratiodiff x Type, and oldratiodiff x Type.
 
 The M3 equation is:
+### Original Answer
 $$
 1 -paupratiodiff_i = B_0 + B_1outratiodiff_i + popratiodiff_i + oldratiodiff_i + year_i + TypeMixed_i + TypeRural_i + TypeUrban_i + popratiodiff*year + popratiodiff*TypeMixed + popratiodiff*TypeRural + popratiodiff*TypeUrban + oldratiodiff*year + oldratiodiff*TypeMixed + oldratiodiff*TypeRural + oldratiodiff*TypeUrban + outratiodiff*year + outratiodiff*TypeMixed + outratiodiff*TypeRural + outratiodiff*TypeUrban + \epsilon
 $$
-which is the same equation as M2, except there are now interaction terms for outradtiodiff and year and Type, as well as an affine transformation applied to the dependent variable. 
+which is the same equation as M2, except there are now interaction terms for outradtiodiff and year and Type, as well as an affine transformation applied to the dependent variable.
 
+### Corrected code
+$$
+\text{paupratiodiff}_{it} = \beta_{1}\text{outratiodiff}_{it} + \beta_{2}\text{popratiodiff}_{it} + \beta_{3}\text{oldratiodiff}_{it} + {\bf\it{\Gamma}}\Big ((\text{outratiodiff}_{it} + \text{popratiodiff}_{it} + \text{oldratiodiff}_{it}) \times (\alpha_{type} + \rho_{t})\Big) + \alpha_{type} + \rho_{t} + e_{it}
+$$
+
+### Original Answer
 The M4 equation is:
 $$
 paupratiodiff_i = B_0 + B_1outratiodiff_i + popratiodiff_i + oldratiodiff_i + year_i + TypeMixed_i + TypeRural_i + TypeUrban_i + popratiodiff*year + popratiodiff*TypeMixed + popratiodiff*TypeRural + popratiodiff*TypeUrban + oldratiodiff*year + oldratiodiff*TypeMixed + oldratiodiff*TypeRural + oldratiodiff*TypeUrban + outratiodiff*year + outratiodiff*TypeMixed + outratiodiff*TypeRural + outratiodiff*TypeUrban + \epsilon
 $$
 The equation is the same as M3, but there is no affine transformation.
+
+### Corrected Answer
+The M4 equation is the same as the M3 equation, but there is no affine transformation.
 
 
 # 4. What is the difference between *M3* and *M4*. What are the pros and cons of each parameterization?
@@ -307,15 +332,40 @@ $$
 1. Take the logarithm of each side, and simplify so that $\log(\mathtt{pauper2}_t/\mathtt{pauper2}_{t -1})$ is the outcome and the predictors are all in the form $\log(x_t) - \log(x_{t - 1}) = \log(x_t / x_{t - 1})$.
 
 #### Since I can't find Popn65 in the dataset, I'm going to assume that Popn65/Popn2 = Prop65 and use the Prop65 variable in my equation below and calculations
-$\log(\mathtt{pauper2}_t)-\log(\mathtt{pauper2}_{t-1}) = \beta_0 + \beta_1 \times (log(outratio_t) - log(outratio_{t-1})) + \beta_2 \times(log(prop65_t)-log(prop65_{t-1})) + \beta_3 \times [log(Popn2_t) - log((Popn2_{t-1})) + log(Popn2_t) - log(Popn2_{t-1})]$
+
+### Corrected Equation
+$\log(\mathtt{pauper2}_t)-\log(\mathtt{pauper2}_{t-1}) = \beta_0 + \beta_1 \times (log(outratio_t) - log(outratio_{t-1})) + \beta_2 \times(log(prop65_t)-log(prop65_{t-1})) + \beta_3 \times (log(Popn2_t) - log(Popn2_{t-1}))$
 
 2. Estimate the model with logged difference predictors, Year, and month and interpret the coefficient on $\log(outratio_t)$.
+
+### Original Answer
 ```{r}
-diff.reg <- lm(log(pauper2) - log(lag(pauper2)) ~ I(log(outratio)-log(lag(outratio))) + I(log(Prop65) - log(lag(Prop65))) + I(log(Popn2) - log(lag(Popn2)) + (log(Popn2) - log(lag(Popn2)))), data=pauperism)
+diff.reg <- lm(log(pauper2) - log(lag(pauper2)) ~ I(log(outratio)-log(lag(outratio))) + I(log(Prop65) - log(lag(Prop65))) + I(log(Popn2) - log(lag(Popn2))), data=pauperism)
 
 summary(diff.reg)
 ```
 Diff.reg is a log-log model that allows us to estimate elasticity. For each 1% increase in the first difference (the difference between $outratio_t$ and $outratio_{t-1}$), there is a .5% increase in the dependent variable (the difference betweeen $pauper2_t$ and $pauper2_{t-1}$.
+
+### Corrected Answer
+```{r}
+log.difference <- function(x, lagx){
+  q <- log(x/lagx)
+  q[is.infinite(q)] <- NA
+  q
+}
+
+pauperism_logdiff <- pauperism %>%
+  group_by(ID) %>%
+  mutate(log_pauper = log.difference(pauper2, lag(pauper2)),
+         log_outratio = log.difference(outratio, lag(outratio)),
+         log_Popn2 = log.difference(Popn2, lag(Popn2)),
+         log_Prop65 = log.difference(Prop65, lag(Prop65))) %>%
+           ungroup()
+
+diff.reg <- lm(log_pauper ~ log_outratio + log_Prop65 + log_Popn2 + year + Type, data=pauperism_logdiff)
+summary(diff.reg)
+```
+Diff.reg is a log-log model that allows us to estimate elasticity. For each 1% increase in the first difference (the difference between $outratio_t$ and $outratio_{t-1}$), there is a .32% increase in the dependent variable (the difference betweeen $pauper2_t$ and $pauper2_{t-1}$.
 
 3. What are the pros and cons of this parameterization of the model relative to the one in @Yule1899a? Focus on interpretation and the desired goal of the inference rather than the formal tests of the regression. Can you think of other, better functional forms?
 
@@ -356,6 +406,8 @@ nrow(model.frame(M2.reg))
 There are fewer data points in M2 because we are looking at the change in each independent variable. Therefore, 1871 data cannot be used in M2. In the non-differenced model, we have more data because each row is its own data point.
 
 # What model do you think will generally have less biased estimates of the effect of out-relief on pauperism: *M5* or *M2*? Explain your reasoning.
+
+### Corrected Answer
 Perhaps M5 is more biased since it treats each point as independent in the different years, while M2 does not. M2 ensures that we are comparing points for a specific union and type between time periods, thus creating less bias because we are comparing changes among more similar data points.
 
 # Substantive Effects
@@ -368,6 +420,7 @@ Gross and McCaskey and Rainey argue that p-values, while not entirely useless, a
 
 McCaskey and Rainey's main point is that confidence intervals (90% confidence intervals specifically) and analysis of the substantiveness of the estimate should be included in research papers. I'm not sure what a substantive change in pauper2 would be for each unit change in outratio, but since our 90% confidence intervals are very small numbers (.001 - .0014) one could probably argue that the effect is negligible. Since the confidence interval is quite narrow, one could argue that there is strong evidence that the effect is negligible.
 
+### Corrected code
 ```{r}
 confint(non_diff.reg, level=0.9)
 ```
@@ -519,18 +572,55 @@ pauperism[c(81, 360, 510, 1460, 1541),]
 ```
 The estimates that have the largest effect on the estimate of outratiodiff are the 81st and 321st row of the original pauperism dataset. Removing the 81st value leads to the lowest estimate of the coefficient on outratiodiff and removing the 321st estimate leads to the highest estimate of the coefficient on outratiodiff. 
 
+### Corrrected code
+```{r}
+# get rid of nulls
+null_deleted <- na.omit(pauperism)
+jackknifeoutput <- matrix(NA, ncol=16, nrow=nrow(null_deleted))
+
+for (i in 1:nrow(null_deleted)){
+  jackknifeoutput[i,] <- coef(lm(paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type), data=null_deleted[-i,]))
+}
+jackknifeoutput <- cbind(null_deleted[,1:2], jackknifeoutput)
+
+df <- as.data.frame(jackknifeoutput)
+
+
+# get min and max values
+df[order(df$V2,decreasing=T)[1:5],]
+# 198 996 876 706 654
+null_deleted[c(198, 996, 876, 706, 654),]
+
+df[order(df$V2,decreasing=F)[1:5],]
+# 50, 907, 223, 948, 852
+null_deleted[c(50, 907, 223, 948, 852),]
+
+```
+The estimates that have the largest effect on the estimate of outratiodiff are Camberwell and Hursley row of the original pauperism dataset. Removing Camberwell leads to the lowest estimate of the coefficient on outratiodiff and removing Hursley leads to the highest estimate of the coefficient on outratiodiff. 
+
 ## 2. How do these observations compare with those that had the largest effect on the overall regression as measured with Cook's distance?
+### Original Answer
 ```{r}
 df_reg <- M2.reg.aug
 df_reg[order(df_reg$.cooksd,decreasing=T)[1:5],]
 ```
 It does not look like there is any overlap in between the 5 points with the highest cooks distance. That may seem surprising at first (at least, it was surprising to me), but cooks distance is affected by both leverage and discrepancy. Outliers with low leverage may have a high cooks distance (due to the high discrepancy necessary for a point to be an outlier) but may not affect the beta estimates very much due to their low leverage. Therefore, it seems reasonable that a point can have a high cooks distance value but not affect the beta significantly.
 
+### Corrected Answer
+```{r}
+df_reg <- cooks.distance(lm(paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type), data=null_deleted))
+df_reg <- as.data.frame(df_reg)
+df_reg <- cbind(IDvars[,1:4], df_reg)
+head(arrange(df_reg, desc(df_reg)))
+```
+There is some overlap. That may seem surprising at first (at least, it was surprising to me) that there isn't perfect, but cooks distance is affected by both leverage and discrepancy. Outliers with low leverage may have a high cooks distance (due to the high discrepancy necessary for a point to be an outlier) but may not affect the beta estimates very much due to their low leverage. Therefore, it seems reasonable that a point can have a high cooks distance value but not affect the beta significantly.
+
 ## 3. Compare the results of the jackknife to the `dfbeta` statistic for `outratiodiff`
+### Original Answer
 The DFBeta is sort of like a standardized jackknife. The highest/lowest dfbeta values on outratio diff are the same as the jackknife values (though the ordering is switched, the lowest dfbeta values are actually the highest jackknife coefficient values and vice-versa). That makes sense since the DFBETA estimates are the calculated by taking the coefficent estimate with the observation - the parameter estimate without the observation (the results is then standardized by using the coefficient's standardard error, not including the observation). Therefore, the results that have the most negative effect on the coefficient should actually have the largest DFBETA (and vice-versa).
 
 ```{r}
-dfbetas <- dfbetas(M2.reg)
+dfbetas <- dfbetas(lm(paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type), data=null_deleted))
 
 dfbetas2 <- as.data.frame(dfbetas)
 
@@ -542,27 +632,67 @@ dfbetas2[order(dfbetas2$outratiodiff,decreasing=F)[1:5],]
 pauperism[c(321, 242, 1620, 1413, 1134),]
 ```
 
+### Corrected Answer
+```{r}
+dfbetas <- dfbetas(lm(paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type), data=null_deleted))
+
+dfbetas2 <- as.data.frame(dfbetas)
+
+# get min and max values
+dfbetas2[order(dfbetas2$outratiodiff,decreasing=T)[1:5],]
+null_deleted[c(50, 907, 223, 948, 852),]
+
+dfbetas2[order(dfbetas2$outratiodiff,decreasing=F)[1:5],]
+null_deleted[c(198, 996, 876, 706, 654),]
+```
+The DFBeta is sort of like a standardized jackknife. The highest/lowest dfbeta values on outratio diff are the same as the jackknife values (though the ordering is switched, the lowest dfbeta values are actually the highest jackknife coefficient values and vice-versa). That makes sense since the DFBETA estimates are the calculated by taking the coefficent estimate with the observation - the parameter estimate without the observation (the results is then standardized by using the coefficient's standardard error, not including the observation). Therefore, the results that have the most negative effect on the coefficient should actually have the largest DFBETA (and vice-versa).
+
 ## 2. @AronowSamii2015a note that the influence of observations in a regression coefficient is different than the the influence of regression observations in the entire regression. Calculate the observation weights for `outratiodiff`.
 
 ## 1. Regress `outratiodiff` on the control variables
+### Original Answer
 ```{r}
 aux_reg <- lm(outratiodiff ~ (popratiodiff+oldratiodiff)*(year+Type), data=pauperism)
 summary(aux_reg)
 ```
 
+### Corrected Code
+```{r}
+aux_reg <- lm(outratiodiff ~ popratiodiff+oldratiodiff + year + Type, data=null_deleted)
+summary(aux_reg)
+```
+
 ## 2. The weights of the observations are those with the highest squared errors from this regression. Which observations have the highest coefficient values? 
+
+### Original Answer
 Aronow et al. note "that more weight goes to units whose treatment values... are not well explained by the covariates" (p.255). So we want to see which values have the highest squared errors in the auxiliary regression of outratiodiff on the control variables. I looked at the squared residuals below and printed out the observations with the 5 largest squared residuals.
 
+### 
 ```{r}
 squared_residuals <- resid(aux_reg)^2
 sort(squared_residuals, decreasing=T)[1:5]
 #       321      1620      1098       242      1646 
 # 12.238305  9.978365  5.089776  4.855011  4.282587 
+null_deleted[c(198, 996, 683, 1009, 282),]
+
+```
+
+### Corrected Answer
+```{r}
+squared_residuals <- resid(aux_reg)^2
+sort(squared_residuals, decreasing=T)[1:5]
+#      198       996       683      1009       282 
+# 207449.41 133825.52  35543.05  24422.85  22833.51
+null_deleted[c(198, 996, 683, 1009, 282),]
+
 ```
 
 ## 3. How do the observations with the highest regression weights compare with those with the highest changes in the regression coefficient from the jackknife?
+### Original Answer
 Three of the variables with the largest impact in the jackknife question appear in this question (321, 1620, and 242). It makes sense that the points that have the largest effect on the beta coefficient (as explained by the jackknife) also are among the points that have the highest weights. Aronow et al. state that the "weight... measures only the contribution of unit i 's effect...to the construction of" the coefficient (255). Therefore it seems intuitive that the observations with higher weights also are considered to be highly influential by the jackknife estimation process.
 
+### Corrected Answer
+Two of the variables with the largest impact in the jackknife question appear in this question (Hursley). It makes sense that the points that have the largest effect on the beta coefficient (as explained by the jackknife) also are among the points that have the highest weights. Aronow et al. state that the "weight... measures only the contribution of unit i 's effect...to the construction of" the coefficient (255). Therefore it seems intuitive that the observations with higher weights also are considered to be highly influential by the jackknife estimation process.
 
 # Omitted Variable Bias
 
@@ -598,6 +728,7 @@ The statistic is 3.5. The statistic is meant to gauge, relative to the included 
 # Heteroskedasticity
 
 ## 1. Run *M2* and *M3*  with a heteroskedasticity consistent (HAC), also called robust, standard error. How does this affect the standard errors on `outratio` coefficients? Use the **sandwich** package to add HAC standard errors [@Zeileis2004a].
+### Original Answer
 ```{r}
 library("sandwich")
 summary(M2.reg)
@@ -614,15 +745,38 @@ sqrt(diag(vcovHAC(M3.reg)))
 ```
 The outratiodiff coefficients increase in both cases when using the HAC standard errors.
 
+### Corrected Answer
+```{r}
+library("sandwich")
+summary(lm(paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type), data=null_deleted))
+```
+```{r}
+M2.reg.vcov <- vcovHAC(lm(paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type), data=null_deleted))
+sqrt(diag(M2.reg.vcov))
+```
+
+```{r}
+summary(lm(I(-1  + paupratiodiff) ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type), data=null_deleted))
+```
+```{r}
+sqrt(diag(vcovHAC(lm(I(-1  + paupratiodiff) ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type), data=null_deleted))))
+```
+The outratiodiff coefficients decrease in both cases when using the HAC standard errors.
+
 
 # Multiple regressions 
 
 ## 1. Run the model with interactions for all years and types
+### Original Answer
 ```{r}
 inter <- lm(pauper2 ~ (outratio + Popn2 + Prop65) * year * Type - 1, data = pauperism)
 summary(inter)
 ```
-
+### Corrected code
+```{r}
+inter <- lm(pauper2 ~ (outratio + Popn2 + Prop65) * year * Type, data = pauperism)
+summary(inter)
+```
 
 ## 2. For each subset of year and type run the regression
 ```{r}
@@ -925,7 +1079,7 @@ However, this yields a standard error not much different than the Robust standar
 Bootstrapping on Region does not seem to make much of a difference on the standard errors. Since the bootstrap sample is selected randomly, I'm not sure if bootstrapping on different variables should make a difference in the standard errors, but maybe I am missing something here.
 ```{r}
 pauperism_nonmiss %>%
-  group_by(Region) %>%
+  group_by(ID) %>%
   resamplr::bootstrap(1024) %>%
   # extract the strap column
   `[[`("sample") %>%
@@ -942,6 +1096,28 @@ pauperism_nonmiss %>%
     conf.low_bsq = quantile(estimate, 0.025),
     conf.low_bsq = quantile(estimate, 0.975)
   ) %>%
-  filter(term == "outratiodiff")
+  filter(term == "BoothGroup")
 
 ```
+```{r}
+pauperism_nonmiss %>%
+  group_by(ID) %>%
+  resamplr::bootstrap(1024) %>%
+  # extract the strap column
+  `[[`("sample") %>%
+  # run 
+  map_df(function(dat) {
+    lm(mod_formula, data = dat) %>%
+    broom::tidy() %>%
+    select(term, estimate)
+  }) %>%
+  # calculate 2.5%, 97.5% and sd of estimates
+  group_by(term) %>%
+  summarise(
+    std.error_bs = sd(estimate),
+    conf.low_bsq = quantile(estimate, 0.025),
+    conf.low_bsq = quantile(estimate, 0.975)
+  ) %>%
+  filter(term == "Region")
+```
+Neither 
