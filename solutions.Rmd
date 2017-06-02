@@ -104,7 +104,11 @@ htmlreg(models) %>% HTML() %>% browsable()
 summary(M1.reg)
 unique(pauperism$year)
 ```
-M1 <- There are 5 independent variables, outratiodiff, year1891, TypeMixed, TypeRural, and TypeUrban. For each one unit increase in outratio diff, there is a .23 average unit increase in paupratiodiff, ceteris paribus. Year is a categorical variable. Year1881 is the reference category, and the coefficient on Year1891 denotes a 14.70 increase in the conditional mean of Y in 1891 vs. in 1881. Type is a categorical variable, in which the Metropolitan type is being used as the reference category. The coefficients on the Type variables denote the difference in paupratio among the different types, when compared to the reference category. For weinstance, there is a decrease of 6.45 in the conditional mean of paupratio among people in the Mixed Type vs. people in the Metropolitan Type. The intercept coefficient is 56.71, meaning that the paupratiodiff is 56.71 when all of the independent variables are 0.
+### Original Answer
+M1 <- There are 5 independent variables, outratiodiff, year1891, TypeMixed, TypeRural, and TypeUrban. For each one unit increase in outratio diff, there is a .23 average unit increase in paupratiodiff, ceteris paribus. Year is a categorical variable. Year1881 is the reference category, and the coefficient on Year1891 denotes a 14.70 increase in the mean of Y in 1891 vs. in 1881. Type is a categorical variable, in which the Metropolitan type is being used as the reference category. The coefficients on the Type variables denote the difference in paupratio among the different types, when compared to the reference category. For instance, there is a decrease of 6.45 in paupratio among people in the Mixed Type vs. people in the Metropolitan Type. The intercept coefficient denotes a paupratiodiff of 56.71, meaning that the paupratiodiff is 56.71 when all of the independent variables are 0.
+
+### Corrected Answer
+M1 <- There are 3 independent variables, outratiodiff, year, and Type. For each one unit increase in outratio diff, there is a .23 average unit increase in paupratiodiff, ceteris paribus. Year is a categorical variable. Year1881 is the reference category, and the coefficient on Year1891 denotes a 14.70 increase in the conditional mean of Y in 1891 vs. in 1881. Type is a categorical variable, in which the Metropolitan type is being used as the reference category. The coefficients on the Type variables denote the difference in paupratio among the different types, when compared to the reference category. For weinstance, there is a decrease of 6.45 in the conditional mean of paupratio among people in the Mixed Type vs. people in the Metropolitan Type. The intercept coefficient is 56.71, meaning that the paupratiodiff is 56.71 when all of the independent variables are 0.
 
 ```{r}
 summary(M2.reg)
@@ -112,6 +116,10 @@ summary(M2.reg)
 
 M2 <- The interpretation of M2 is simalar to M1 in some ways. For instance, for each one unit increase in outratiodiff, there is a .23 average unit increase in paupratiodiff and the intercept coefficient denotes a paupratiodiff of -55.34, meaning that the paupratiodiff is -55.34 when all of the independent variables are 0. The coefficients on year and the Type variables are interpreted in the same way as they were interpreted in M1 as well. 
 
+### Original Answer
+There is a key difference between M1 and M2; the inclusion of the interaction terms in M2. There are interaction terms for popratiodiff and year, popratiodiff and Type, oldratiodif and year, and oldratiodiff and Type. Type and year are categorical variables, so we create dummies from the values in each. For popratiodiff x Type, there are coefficients for popratiodiff x TypeMixed, popratiodiff x TypeRural, and popratiodiff x TypeUrban. I'm going to use popratiodiff x TypeMixed as an example, but the intuition holds for the other terms. Where TypeMixed is 0 (i.e. the person doesn't live in a Mixed PLU), the interaction term is 0 and therefore does not have an effect on the dependent variable or other betas. When TypeMixed is 1, the slope of the fitted value equation decreases by about .00237 (the coefficient is -2.372e-02). We can interpret all of the other interaction terms including Type and year similarly.
+
+### Corrected Answer
 There is a key difference between M1 and M2; the inclusion of the interaction terms in M2. There are interaction terms for popratiodiff and year, popratiodiff and Type, oldratiodif and year, and oldratiodiff and Type. Type and year are categorical variables, so we create dummies from the values in each. For popratiodiff x Type, there are coefficients for popratiodiff x TypeMixed, popratiodiff x TypeRural, and popratiodiff x TypeUrban. I'm going to use popratiodiff x year1891 as an example, but the intuition holds for the other terms. Where year1891 is 0 (i.e. the observation occurs in a different year), the interaction term is 0 and therefore does not have an effect on the dependent variable or other betas. When year1891 is 1, the slope of the fitted value equation decreases by about .24. We can interpret all of the other interaction terms including Type and year similarly.
 
 
@@ -195,6 +203,13 @@ M3 has an affine transformation, which slightly changes the intercept. Affine tr
 # 5. Conduct F-tests on the hypotheses:
 
 ## 1. All interactions in *M4* are 0
+### Original Code
+```{r}
+restricted1 <- lm(paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff), data=pauperism)
+anova(M4.reg, restricted1)
+```  
+
+### Corrected Code
 ```{r}
 restricted1 <- lm(paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff + year + Type), data=pauperism)
 anova(M4.reg, restricted1)
@@ -399,9 +414,16 @@ nrow(model.frame(non_diff.reg))
 nrow(model.frame(M2.reg))
 # [1] 1180
 ```
+### Original Answer
+There are fewer data points in M2 because we are looking at the change in each independent variable. Therefore, we take two rows worth of data to produce one data point. In the non-differenced model, we have more data because each row is its own data point.
+
+### Corrected Answer
 There are fewer data points in M2 because we are looking at the change in each independent variable. Therefore, 1871 data cannot be used in M2. In the non-differenced model, we have more data because each row is its own data point.
 
 # What model do you think will generally have less biased estimates of the effect of out-relief on pauperism: *M5* or *M2*? Explain your reasoning.
+
+### Original Answer
+Autocorrelation is certainly present in this data and M2 will do a better job of controlling for autocorrelation, I believe. I think that autocorrelation will be controlled more in M2 because M2 does not treat data points on the same ID as independent in different years. For this reason, I would choose M2 over M5. However, autocorrelation will only affect uncertainty, not bias. Perhaps M5 is more biased since it treats each point as independent in the different years, while M2 does not, though I'm not exactly sure if/how that would bias the estimated coefficient.
 
 ### Corrected Answer
 Perhaps M5 is more biased since it treats each point as independent in the different years, while M2 does not. M2 ensures that we are comparing points for a specific union and type between time periods, thus creating less bias because we are comparing changes among more similar data points.
@@ -414,9 +436,26 @@ I'll use the non-differenced model for this question. As shown below, the p-valu
 
 Gross and McCaskey and Rainey argue that p-values, while not entirely useless, are not descripritve enough to be useful stand-alone measures. Using Gross et alia's PASS-test, we could try to create a range of values (instead of just using 0) that we determine to be "effectively null" (Gross 780) and then determine where the estimated coefficient's confidence interval bounds lie relative to the range of null values. I get the confidence interval (.001 - .0014) in the code below (assuming an alpha of .05, I get an estimate of the confidence interval by adding/subtracting 2 standard deviations from the point estimate). The coefficient is highly significant, but is .0009-.0014 substantively significant? If the confidence interval is entirely outside of the range of null values, Gross would say it is. If the confidence interval is subsumed by the range of null values, Gross would say that the coefficient is not substantively significant. If the two ranges overlap, the coefficient is inconclusively significant.
 
+### Original Answer 
+McCaskey and Rainey's main point is that confidence intervals (90% confidence intervals specifically) and analysis of the substantiveness of the estimate should be included in research papers. I'm not sure what a substantive change in pauper2 would be for each unit change in outratio, but since our 95% confidence intervals are very small numbers (.001 - .0014) one could probably argue that the effect is negligible. Since the confidence interval is quite narrow, one could argue that there is strong evidence that the effect is negligible.
+```{r}
+summary(non_diff.reg)
+ 
+point_estimate <- 1.213e-03
+std_err<- 1.066e-04
+
+# CI upper bound 
+point_estimate + 2 * std_err
+# [1] 0.0014262
+
+# CI lower bound
+point_estimate - 2 * std_err  
+# [1] 0.0009998
+```
+
+### Corrected Answer
 McCaskey and Rainey's main point is that confidence intervals (90% confidence intervals specifically) and analysis of the substantiveness of the estimate should be included in research papers. I'm not sure what a substantive change in pauper2 would be for each unit change in outratio, but since our 90% confidence intervals are very small numbers (.001 - .0014) one could probably argue that the effect is negligible. Since the confidence interval is quite narrow, one could argue that there is strong evidence that the effect is negligible.
 
-### Corrected code
 ```{r}
 confint(non_diff.reg, level=0.9)
 ```
@@ -704,6 +743,21 @@ lm(paupratiodiff~outratiodiff, data=pauperism)
 beta_R <- 0.3062
 ```
 
+### Original Code for #2 and #3
+ 2. Run a regression with the full set of controls. Denote the coefficient on the variable of interest in this regression as $\hat\beta_F$. 
+```{r}
+full <- lm(paupratiodiff ~ outratiodiff + popratiodiff + oldratiodiff + year + Type, data=pauperism)
+summary(full)
+beta_F <- 0.23750
+```
+
+3. The ratio is $\hat\beta_F / (\hat\beta_R - \hat\beta_F)$
+```{r}
+beta_R / (beta_R - beta_F)
+```
+
+### Corrected Code for #2 and #3
+
 2. Run a regression with the full set of controls. Denote the coefficient on the variable of interest in this regression as $\hat\beta_F$. 
 ```{r}
 full <- lm(paupratiodiff ~ outratiodiff + popratiodiff + oldratiodiff + year + Type, data=pauperism)
@@ -719,10 +773,21 @@ beta_F / (beta_R - beta_F)
 
 ## Calculate this statistic for *M2* and interpret it.
 
+### Original Answer
+The statistic is 3.16. The statistic is meant to gauge, relative to the included control variables, the required effect of omitted variable bias to make the observed coefficient 0. $\hat\beta_F$ denotes the coefficient in the full model and $\hat\beta_F /(\hat\beta_R - \hat\beta_F)$ denotes the change in the coefficient due to the control variables. So, any omitted variables would have to have a 3.16x larger effect than the current set of control variables for the estimated coefficient to be 0. I think this metric could made more useful if, instead of looking at the required effect of the potential omitted variables to make the coefficient 0, the metric looked at the required effect of the potential omitted variables to make the coefficient substantively null (using the reasoning layed out by Gross).
+
+### Corrected Answer
 The statistic is 3.5. The statistic is meant to gauge, relative to the included control variables, the required effect of omitted variable bias to make the observed coefficient 0. $\hat\beta_F$ denotes the coefficient in the full model and $\hat\beta_F /(\hat\beta_R - \hat\beta_F)$ denotes the change in the coefficient due to the control variables. So, any omitted variables would have to have a 3.5x larger effect than the current set of control variables for the estimated coefficient to be 0. I think this metric could made more useful if, instead of looking at the required effect of the potential omitted variables to make the coefficient 0, the metric looked at the required effect of the potential omitted variables to make the coefficient substantively null (using the reasoning layed out by Gross).
 
 # Heteroskedasticity
+### Original Answer
+```{r}
+sqrt(diag(vcov(M3.reg)))
+sqrt(diag(vcovHAC(M3.reg)))
+```
+The outratiodiff coefficients remain unchanged in the heteroskedacticity consistent and non-heteroskedacticity-consistent errors. Since the general lm command does not account for heteroskedasticity, it must be that the errors in M2 and M3 are homoskedastic enough that the estimates remain unchanged whether using HAC or not. Looking at the plot below, I think the data looks fairly homoskedastic (citation for the code used to produce the spread-level plot: "Ression Diagnostics." Statmethods.net. Robert I. Kabacoff, Ph.D, n.d. Web. 2 May 2017. <http://www.statmethods.net/stats/rdiagnostics.html>.)
 
+### Corrected Answer
 ## 1. Run *M2* and *M3*  with a heteroskedasticity consistent (HAC), also called robust, standard error. How does this affect the standard errors on `outratio` coefficients? Use the **sandwich** package to add HAC standard errors [@Zeileis2004a].
 ### Original Answer
 ```{r}
