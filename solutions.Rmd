@@ -11,11 +11,7 @@ output:
       in_header: includes/in_header.tex
     keep_tex: yes
 bibliography: assignment2.bib
----
-
-# Questions
-1. What is the rho t variable in the question 1c equations?
-2. 
+--
 
 This assignment works through an example in @Yule1899a:
 
@@ -1076,10 +1072,20 @@ pauperism_nonmiss %>%
 However, this yields a standard error not much different than the Robust standard error.
 
 ## 1. Try bootstrapping "Region" and "BoothGroup". Do either of these make much difference in the standard errors.
+### Original Answer
 Bootstrapping on Region does not seem to make much of a difference on the standard errors. Since the bootstrap sample is selected randomly, I'm not sure if bootstrapping on different variables should make a difference in the standard errors, but maybe I am missing something here.
+
+### Corrected Answer
 ```{r}
-pauperism_nonmiss %>%
-  group_by(ID) %>%
+# we need the BoothGroup variable (which wasn't included in the original pauperism_nomiss)
+pauperism_nonmiss_with_BoothGroup <- 
+  pauperism %>%
+  filter(year %in% c(1881, 1891)) %>%
+  select(paupratiodiff, outratiodiff, popratiodiff, oldratiodiff, year, Type, Region, ID, BoothGroup) %>%
+  tidyr::drop_na()
+
+pauperism_nonmiss_with_BoothGroup %>%
+  group_by(BoothGroup) %>%
   resamplr::bootstrap(1024) %>%
   # extract the strap column
   `[[`("sample") %>%
@@ -1094,14 +1100,14 @@ pauperism_nonmiss %>%
   summarise(
     std.error_bs = sd(estimate),
     conf.low_bsq = quantile(estimate, 0.025),
-    conf.low_bsq = quantile(estimate, 0.975)
+    conf.high_bsq = quantile(estimate, 0.975)
   ) %>%
-  filter(term == "BoothGroup")
+  filter(term == "outratiodiff")
 
 ```
 ```{r}
 pauperism_nonmiss %>%
-  group_by(ID) %>%
+  group_by(Region) %>%
   resamplr::bootstrap(1024) %>%
   # extract the strap column
   `[[`("sample") %>%
@@ -1116,8 +1122,9 @@ pauperism_nonmiss %>%
   summarise(
     std.error_bs = sd(estimate),
     conf.low_bsq = quantile(estimate, 0.025),
-    conf.low_bsq = quantile(estimate, 0.975)
+    conf.high_bsq = quantile(estimate, 0.975)
   ) %>%
-  filter(term == "Region")
+  filter(term == "outratiodiff")
 ```
-Neither 
+
+Bootstrapping on Region and BoothGroup yield similar estimates (0.02117972 and 0.01975934 in the BoothGroup and Region bootstraps, respectively). The bootstrap confidence intervals are also quite similar in all 3 cases.
