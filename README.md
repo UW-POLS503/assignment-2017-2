@@ -84,8 +84,8 @@ treatment
 -   **Proportion of Old:** the proportion of the aged (65 years) to the
     whole population since the old are more likely to be poor.
 -   **Population:** in particular changes in population that may be
-    proxying for changes in the economic, social, or moral factors of
-    PLUs.
+    proxying for changes in the economic, social, or moral factors
+    of PLUs.
 
 There is also **Grouping of Unions**, which is a locational
 classification based on population density that consists of Rural,
@@ -157,8 +157,8 @@ $$
     log(*o**u**t**r**a**t**i**o*<sub>*t*</sub>).
 3.  What are the pros and cons of this parameterization of the model
     relative to the one in Yule (1899)? Focus on interpretation and the
-    desired goal of the inference rather than the formal tests of the
-    regression. Can you think of other, better functional forms?
+    desired goal of the inference rather than the formal tests of
+    the regression. Can you think of other, better functional forms?
 
 Non-differenced Model
 ---------------------
@@ -171,8 +171,8 @@ Suppose you estimate the model (*M5*) without differencing,
     model *M5*
 -   What accounts for the different in sample sizes in *M5* and *M2*?
 -   What model do you think will generally have less biased estimates of
-    the effect of out-relief on pauperism: *M5* or *M2*? Explain your
-    reasoning.
+    the effect of out-relief on pauperism: *M5* or *M2*? Explain
+    your reasoning.
 
 Substantive Effects
 -------------------

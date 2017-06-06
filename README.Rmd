@@ -77,21 +77,21 @@ In @Yule1899a, the reg
 - *M1:* `paupratiodiff ~ outratiodiff + year + Type`
 - *M2:* `paupratiodiff ~ outratiodiff + (popratiodiff + oldratiodiff) * (year + Type)`
 - *M3:* `-1  + paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type)`
-- *M3:* `paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type)`
+- *M4:* `paupratiodiff ~ (outratiodiff + popratiodiff + oldratiodiff) * (year + Type)`
 
 1. Present the regressions results in a regression table
 2. Interpret the coefficients for `outratiodiff` for each model.
 3. Write the equations for each or all models, and describe the model with a sentence or two. Try to be as concise as possible. Look at recent journal articles for examples of the wording and format.
 4. What is the difference between *M3* and *M4*. What are the pros and cons of each parameterization?
-4. Conduct F-tests on the hypotheses:
+5. Conduct F-tests on the hypotheses:
   
   1. All interactions in *M4* are 0
   2. The coefficients on `outratiodiff` in *M4* are the same across years
   3. The coefficients on `outratiodiff` in *M4* are the same across PLU Types
   4. The coefficients on `outratiodiff` in *M4* are the same across PLU Types and years.
 
-5. What is the predicted value of the median PLU in each year and PLU Type for these models. Include confidence intervals. Plot these as point-ranges with the estimate and confidence intervals.
-6. As previously, calculate the predicted value of the median PLU in each year and PLU Type. But instead of confidence intervals include the prediction interval. How do the confidence and prediction intervals differ? What are their definitions?
+6. What is the predicted value of the median PLU in each year and PLU Type for these models. Include confidence intervals. Plot these as point-ranges with the estimate and confidence intervals.
+7. As previously, calculate the predicted value of the median PLU in each year and PLU Type. But instead of confidence intervals include the prediction interval. How do the confidence and prediction intervals differ? What are their definitions?
 
 
 ## Functional Forms

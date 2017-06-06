@@ -15,7 +15,6 @@ library("car")
 library("texreg")
 library("sandwich")
 library("git2r")
-config(global = TRUE, user.email = "jgrove91@uw.edu", user.name = "jgrove91")
 ```
 
 ```{r}
@@ -68,12 +67,12 @@ $$
 This is another linear model which allows us to estimate the changes based on outratiodiff, popratiodiff, oldratiodiff, year, and type.  This model also allows us to estimate conditional changes that depend on year and type.
 
 $$
-paupratiodiff - 1 = \beta_0\ + \beta_1outratiodiff\ + \beta_2popratiodiff\ + \beta_3oldratiodiff\ + \beta_4year\ + \beta_5type\ + \\ \beta_6(popratiodiff \times\ year)\ + \beta_7(popratiodiff \times\ type)\ + \\ \beta_8(oldratiodiff \times\ year)\ + \beta_9(oldratiodiff \times\ type)\ + \\ \beta_{10}(outratiodiff \times\ year)\ + \beta_{11}(outratiodiff \times\ type)\ + \epsilon\
+paupratiodiff - 1 = \beta_0\ + \beta_1outratiodiff\ + \beta_2popratiodiff\ + \beta_3oldratiodiff\ + \rho year\ + \alpha type\ + \\ \beta_6(popratiodiff \times\ year)\ + \beta_7(popratiodiff \times\ type)\ + \\ \beta_8(oldratiodiff \times\ year)\ + \beta_9(oldratiodiff \times\ type)\ + \\ \beta_{10}(outratiodiff \times\ year)\ + \beta_{11}(outratiodiff \times\ type)\ + \epsilon\
 $$
 This model further includes interactions between PLU, year and the explanatory variable of interest, outratiodiff.  It also shifts the intercept down by 1 value.
 
 $$
-paupratiodiff = \beta_0\ + \beta_1outratiodiff\ + \beta_2popratiodiff\ + \beta_3oldratiodiff\ + \beta_4year\ + \beta_5type\ + \\ \beta_6(popratiodiff \times\ year)\ + \beta_7(popratiodiff \times\ type)\ + \\ \beta_8(oldratiodiff \times\ year)\ + \beta_9(oldratiodiff \times\ type)\ + \\ \beta_{10}(outratiodiff \times\ year)\ + \beta_{11}(outratiodiff \times\ type)\ + \epsilon\
+paupratiodiff = \beta_0\ + \beta_1outratiodiff\ + \beta_2popratiodiff\ + \beta_3oldratiodiff\ + \rho year\ + \alpha type\ + \\ \beta_6(popratiodiff \times\ year)\ + \beta_7(popratiodiff \times\ type)\ + \\ \beta_8(oldratiodiff \times\ year)\ + \beta_9(oldratiodiff \times\ type)\ + \\ \beta_{10}(outratiodiff \times\ year)\ + \beta_{11}(outratiodiff \times\ type)\ + \epsilon\
 $$
 This final model is the same as the previous, but no longer shifts the intercept down by 1 value.
 
@@ -161,14 +160,28 @@ $$
 1. Take the logarithm of each side, and simplify so that $\log(\mathtt{pauper2}_t/\mathtt{pauper2}_{t -1})$ is the outcome and the predictors are all in the form $\log(x_t) - \log(x_{t - 1}) = \log(x_t / x_{t - 1})$.
 
 $$
-\log(\mathtt{pauper2}_t/\mathtt{pauper2}_{t-1}) = \beta_0\ + \beta_1(\log(\mathtt{outratiodiff})\ - \log(\mathtt{outratiodiff_{t-1}})\\+ \beta_2(\log(\mathtt{popn65_t})\ - \log(\mathtt{popn65_{t-1}})\ + \log(\mathtt{popn2_t}) - \log(\mathtt{popn2_{t-1}})) \\ + \beta_3(\log(\mathtt{popn2_t})\ - \log(\mathtt{popn2_{t-1}}))
+\bigg(log(\text{pauper2}_{t})-log(\text{pauper2}_{t-1})\bigg)_{it{}} = \beta_{0} + \beta_{1}\bigg( log(\text{outratio}_{t})-log(\text{outratio}_{t-1})\bigg)_{it} + \\\beta_{2}\bigg(log(\text{Popn2}_{t})-log(\text{Popn2}_{t-1})\bigg)_{it}+\beta_{3}\bigg(log(\text{Pop65}_{t})-log(\text{Pop65}_{t-1})\bigg)_{it}+\epsilon_{it}
 $$
 
 2. Estimate the model with logged difference predictors, Year, and month and interpret the coefficient on $\log(outratio_t)$.
 
 ```{r}
-lm(log(pauper2) ~ (log(outratio) + log(Popn2) + log(Prop65)) 
-      * year + Type, data = pauperism)
+log.difference <- function(x, lagx){
+  q <- log(x/lagx)
+  q[is.infinite(q)] <- NA
+  q
+}
+
+pauperism_logdiff <- pauperism %>%
+  group_by(ID) %>%
+  mutate(log_pauper = log.difference(pauper2, lag(pauper2)),
+         log_outratio = log.difference(outratio, lag(outratio)),
+         log_Popn2 = log.difference(Popn2, lag(Popn2)),
+         log_Prop65 = log.difference(Prop65, lag(Prop65))) %>%
+           ungroup()
+
+MLogDiff <- lm(log_pauper ~ log_outratio + log_Popn2 + log_Prop65 + year + Type, data=pauperism_logdiff)
+summary(MLogDiff)
 ```
 
 A 1 percent change in outratiodiff is estimated to have on average a 0.21 percent effect on paupratiodiff, ceteris paribus.  However, in order to derive $\log(outratio_t)$, we need to look at the covariance between outratio and year.  We thus find that there is on average a six percent increase on the effect of `outratio` from $\log(outratio_{t-1})$ to $\log(outratio_{t})$, from 0.21 to 0.27, thus we understand that there is a six percent change from 1871 to 1881.

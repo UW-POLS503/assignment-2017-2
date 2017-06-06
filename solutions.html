@@ -171,7 +171,6 @@ library(&quot;car&quot;)</code></pre>
 <pre><code>## The following objects are masked from 'package:purrr':
 ## 
 ##     is_empty, when</code></pre>
-<pre class="r"><code>config(global = TRUE, user.email = &quot;jgrove91@uw.edu&quot;, user.name = &quot;jgrove91&quot;)</code></pre>
 <pre class="r"><code>pauperism &lt;-
   left_join(datums::pauperism_plu, datums::pauperism_year,
             by = &quot;ID&quot;) %&gt;%
@@ -263,10 +262,10 @@ paupratiodiff = \beta_0\ +\beta_1outratiodiff\ + \beta_2year\ + \beta_3type\ + \
 paupratiodiff = \beta_0\ + \beta_1outratiodiff\ + \beta_2popratiodiff\ + \beta_3oldratiodiff\ + \beta_4year\ + \beta_5type\ + \\ \beta_6(popratiodiff \times\ year)\ + \beta_7(popratiodiff \times\ type)\ + \\ \beta_8(oldratiodiff \times\ year)\ + \beta_9(oldratiodiff \times\ type)\ + \epsilon\
 \]</span> This is another linear model which allows us to estimate the changes based on outratiodiff, popratiodiff, oldratiodiff, year, and type. This model also allows us to estimate conditional changes that depend on year and type.</p>
 <p><span class="math display">\[
-paupratiodiff - 1 = \beta_0\ + \beta_1outratiodiff\ + \beta_2popratiodiff\ + \beta_3oldratiodiff\ + \beta_4year\ + \beta_5type\ + \\ \beta_6(popratiodiff \times\ year)\ + \beta_7(popratiodiff \times\ type)\ + \\ \beta_8(oldratiodiff \times\ year)\ + \beta_9(oldratiodiff \times\ type)\ + \\ \beta_{10}(outratiodiff \times\ year)\ + \beta_{11}(outratiodiff \times\ type)\ + \epsilon\
+paupratiodiff - 1 = \beta_0\ + \beta_1outratiodiff\ + \beta_2popratiodiff\ + \beta_3oldratiodiff\ + \rho year\ + \alpha type\ + \\ \beta_6(popratiodiff \times\ year)\ + \beta_7(popratiodiff \times\ type)\ + \\ \beta_8(oldratiodiff \times\ year)\ + \beta_9(oldratiodiff \times\ type)\ + \\ \beta_{10}(outratiodiff \times\ year)\ + \beta_{11}(outratiodiff \times\ type)\ + \epsilon\
 \]</span> This model further includes interactions between PLU, year and the explanatory variable of interest, outratiodiff. It also shifts the intercept down by 1 value.</p>
 <p><span class="math display">\[
-paupratiodiff = \beta_0\ + \beta_1outratiodiff\ + \beta_2popratiodiff\ + \beta_3oldratiodiff\ + \beta_4year\ + \beta_5type\ + \\ \beta_6(popratiodiff \times\ year)\ + \beta_7(popratiodiff \times\ type)\ + \\ \beta_8(oldratiodiff \times\ year)\ + \beta_9(oldratiodiff \times\ type)\ + \\ \beta_{10}(outratiodiff \times\ year)\ + \beta_{11}(outratiodiff \times\ type)\ + \epsilon\
+paupratiodiff = \beta_0\ + \beta_1outratiodiff\ + \beta_2popratiodiff\ + \beta_3oldratiodiff\ + \rho year\ + \alpha type\ + \\ \beta_6(popratiodiff \times\ year)\ + \beta_7(popratiodiff \times\ type)\ + \\ \beta_8(oldratiodiff \times\ year)\ + \beta_9(oldratiodiff \times\ type)\ + \\ \beta_{10}(outratiodiff \times\ year)\ + \beta_{11}(outratiodiff \times\ type)\ + \epsilon\
 \]</span> This final model is the same as the previous, but no longer shifts the intercept down by 1 value.</p>
 <ol start="4" style="list-style-type: decimal">
 <li>What is the difference between <em>M3</em> and <em>M4</em>? What are the pros and cons of parameterization?</li>
@@ -425,29 +424,53 @@ type_plot_c(M1)</code></pre>
 <li>Take the logarithm of each side, and simplify so that <span class="math inline">\(\log(\mathtt{pauper2}_t/\mathtt{pauper2}_{t -1})\)</span> is the outcome and the predictors are all in the form <span class="math inline">\(\log(x_t) - \log(x_{t - 1}) = \log(x_t / x_{t - 1})\)</span>.</li>
 </ol>
 <p><span class="math display">\[
-\log(\mathtt{pauper2}_t/\mathtt{pauper2}_{t-1}) = \beta_0\ + \beta_1(\log(\mathtt{outratiodiff})\ - \log(\mathtt{outratiodiff_{t-1}})\\+ \beta_2(\log(\mathtt{popn65_t})\ - \log(\mathtt{popn65_{t-1}})\ + \log(\mathtt{popn2_t}) - \log(\mathtt{popn2_{t-1}})) \\ + \beta_3(\log(\mathtt{popn2_t})\ - \log(\mathtt{popn2_{t-1}}))
+\bigg(log(\text{pauper2}_{t})-log(\text{pauper2}_{t-1})\bigg)_{it{}} = \beta_{0} + \beta_{1}\bigg( log(\text{outratio}_{t})-log(\text{outratio}_{t-1})\bigg)_{it} + \\\beta_{2}\bigg(log(\text{Popn2}_{t})-log(\text{Popn2}_{t-1})\bigg)_{it}+\beta_{3}\bigg(log(\text{Pop65}_{t})-log(\text{Pop65}_{t-1})\bigg)_{it}+\epsilon_{it}
 \]</span></p>
 <ol start="2" style="list-style-type: decimal">
 <li>Estimate the model with logged difference predictors, Year, and month and interpret the coefficient on <span class="math inline">\(\log(outratio_t)\)</span>.</li>
 </ol>
-<pre class="r"><code>lm(log(pauper2) ~ (log(outratio) + log(Popn2) + log(Prop65)) 
-      * year + Type, data = pauperism)</code></pre>
+<pre class="r"><code>log.difference &lt;- function(x, lagx){
+  q &lt;- log(x/lagx)
+  q[is.infinite(q)] &lt;- NA
+  q
+}
+
+pauperism_logdiff &lt;- pauperism %&gt;%
+  group_by(ID) %&gt;%
+  mutate(log_pauper = log.difference(pauper2, lag(pauper2)),
+         log_outratio = log.difference(outratio, lag(outratio)),
+         log_Popn2 = log.difference(Popn2, lag(Popn2)),
+         log_Prop65 = log.difference(Prop65, lag(Prop65))) %&gt;%
+           ungroup()
+
+MLogDiff &lt;- lm(log_pauper ~ log_outratio + log_Popn2 + log_Prop65 + year + Type, data=pauperism_logdiff)
+summary(MLogDiff)</code></pre>
 <pre><code>## 
 ## Call:
-## lm(formula = log(pauper2) ~ (log(outratio) + log(Popn2) + log(Prop65)) * 
-##     year + Type, data = pauperism)
+## lm(formula = log_pauper ~ log_outratio + log_Popn2 + log_Prop65 + 
+##     year + Type, data = pauperism_logdiff)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.87127 -0.14516 -0.00363  0.14204  1.51558 
 ## 
 ## Coefficients:
-##            (Intercept)           log(outratio)              log(Popn2)  
-##               0.532585                0.207983               -0.076987  
-##            log(Prop65)                year1881                year1891  
-##               0.898523               -1.172862               -1.082629  
-##              TypeMixed               TypeRural               TypeUrban  
-##              -0.594475               -0.694682               -0.460495  
-## log(outratio):year1881  log(outratio):year1891     log(Popn2):year1881  
-##               0.061981                0.004959                0.030173  
-##    log(Popn2):year1891    log(Prop65):year1881    log(Prop65):year1891  
-##               0.017454               -0.150545               -0.132272</code></pre>
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  -0.06588    0.03857  -1.708   0.0879 .  
+## log_outratio  0.32411    0.01808  17.922  &lt; 2e-16 ***
+## log_Popn2    -0.75684    0.05836 -12.969  &lt; 2e-16 ***
+## log_Prop65    0.05452    0.09399   0.580   0.5620    
+## year1891      0.14748    0.01783   8.272 3.54e-16 ***
+## TypeMixed    -0.16248    0.03550  -4.578 5.21e-06 ***
+## TypeRural    -0.25728    0.03640  -7.068 2.69e-12 ***
+## TypeUrban    -0.06930    0.03705  -1.870   0.0617 .  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.2481 on 1172 degrees of freedom
+##   (617 observations deleted due to missingness)
+## Multiple R-squared:  0.4679, Adjusted R-squared:  0.4647 
+## F-statistic: 147.2 on 7 and 1172 DF,  p-value: &lt; 2.2e-16</code></pre>
 <p>A 1 percent change in outratiodiff is estimated to have on average a 0.21 percent effect on paupratiodiff, ceteris paribus. However, in order to derive <span class="math inline">\(\log(outratio_t)\)</span>, we need to look at the covariance between outratio and year. We thus find that there is on average a six percent increase on the effect of <code>outratio</code> from <span class="math inline">\(\log(outratio_{t-1})\)</span> to <span class="math inline">\(\log(outratio_{t})\)</span>, from 0.21 to 0.27, thus we understand that there is a six percent change from 1871 to 1881.</p>
 <ol start="3" style="list-style-type: decimal">
 <li>What are the pros and cons of this parameterization of the model relative to the one in <span class="citation">@Yule1899a</span>? Focus on interpretation and the desired goal of the inference rather than the formal tests of the regression. Can you think of other, better functional forms?</li>
@@ -1101,7 +1124,7 @@ pauperism_10folds &lt;-
 <p>E.g. for one fold and formula,</p>
 <pre class="r"><code>mod_rmse_fold(mod_formulas[[1]], pauperism_10folds$train[[1]],
               pauperism_10folds$test[[1]])</code></pre>
-<pre><code>## [1] 22.37463</code></pre>
+<pre><code>## [1] 22.21908</code></pre>
 <p>Now write a function that will calculate the average RMSE across folds for a formula and a cross-validation data frame with <code>train</code> and <code>test</code> list-columns:</p>
 <pre class="r"><code>mod_rmse &lt;- function(f, data) {
   map2_dbl(data$train, data$test, 
@@ -1111,7 +1134,7 @@ pauperism_10folds &lt;-
     mean()
 }</code></pre>
 <pre class="r"><code>mod_rmse(mod_formulas[[1]], pauperism_10folds)</code></pre>
-<pre><code>## [1] 24.20375</code></pre>
+<pre><code>## [1] 24.19471</code></pre>
 <p>Finally, we want to run <code>mod_rmse</code> for each formula in <code>mod_formulas</code>. It will be easiest to store this in a data frame:</p>
 <pre class="r"><code>cv_results &lt;- tibble(
   model_formula = mod_formulas,
@@ -1152,22 +1175,22 @@ cv_results</code></pre>
 
   }</code></pre>
 <pre><code>## $m0
-## [1] 24.20375
+## [1] 24.19471
 ## 
 ## $m1
-## [1] 21.05918
+## [1] 20.90997
 ## 
 ## $m2
-## [1] 19.11656
+## [1] 18.971
 ## 
 ## $m3
-## [1] 18.40929
+## [1] 18.3088
 ## 
 ## $m4
-## [1] 18.29945
+## [1] 18.21457
 ## 
 ## $m5
-## [1] 18.20912</code></pre>
+## [1] 18.14308</code></pre>
 <p>Model 4 has the best out of sample prediction.</p>
 <ol start="2" style="list-style-type: decimal">
 <li>Using the LOO-CV cross-validation, which model has the best</li>
@@ -1244,7 +1267,7 @@ mod_orig &lt;- lm(mod_formula, data = pauperism_nonmiss)</code></pre>
   filter(term == &quot;outratiodiff&quot;) %&gt;%
   left_join(bs_coef_se, by = &quot;term&quot;)</code></pre>
 <pre><code>##           term  estimate  std.error std.error_bs conf.low_bsq
-## 1 outratiodiff 0.2273004 0.01434334   0.01937344    0.2697696</code></pre>
+## 1 outratiodiff 0.2273004 0.01434334    0.0192406    0.2690982</code></pre>
 <p>The bootstrap standard error is slightly higher. It is similar to the standard error generated using the heteroskedasticity consistent standard error.</p>
 <pre class="r"><code>sqrt(sandwich::vcovHC(mod_orig)[&quot;outratiodiff&quot;, &quot;outratiodiff&quot;])</code></pre>
 <pre><code>## [1] 0.01986397</code></pre>
@@ -1271,7 +1294,7 @@ mod_orig &lt;- lm(mod_formula, data = pauperism_nonmiss)</code></pre>
 <pre><code>## # A tibble: 1 × 4
 ##           term std.error_bs conf.low_bsq conf.high_bsq
 ##          &lt;chr&gt;        &lt;dbl&gt;        &lt;dbl&gt;         &lt;dbl&gt;
-## 1 outratiodiff   0.01829127    0.1955738     0.2666091</code></pre>
+## 1 outratiodiff   0.01852412    0.1922662     0.2619798</code></pre>
 <p>However, this yields a standard error not much different than the Robust standard error.</p>
 <ol style="list-style-type: decimal">
 <li>Try bootstrapping “Region” and “BoothGroup”. Do either of these make much difference in the standard errors.</li>
@@ -1300,7 +1323,7 @@ pauperism_nonmiss %&gt;%
 <pre><code>## # A tibble: 1 × 4
 ##           term std.error_bs conf.low_bsq conf.high_bsq
 ##          &lt;chr&gt;        &lt;dbl&gt;        &lt;dbl&gt;         &lt;dbl&gt;
-## 1 outratiodiff   0.01886931    0.2002334     0.2736393</code></pre>
+## 1 outratiodiff   0.01816372    0.1981735     0.2699011</code></pre>
 <pre class="r"><code># BoothGroup
 
 pauperism_nonmiss %&gt;%
@@ -1325,7 +1348,7 @@ pauperism_nonmiss %&gt;%
 <pre><code>## # A tibble: 1 × 4
 ##           term std.error_bs conf.low_bsq conf.high_bsq
 ##          &lt;chr&gt;        &lt;dbl&gt;        &lt;dbl&gt;         &lt;dbl&gt;
-## 1 outratiodiff   0.02114297    0.1978872     0.2828393</code></pre>
+## 1 outratiodiff   0.02077774      0.19649     0.2787523</code></pre>
 <p>No, neither of these makes a large difference in the standard errors compared to the original bootstrap.</p>
 </div>
 <div id="references" class="section level2">
